@@ -18,7 +18,7 @@ __author__      = 'Pedro Algarvio'
 __email__       = 'ufs@ufsoft.org'
 __package__     = 'L10nManagerTracPlugin'
 __license__     = 'BSD'
-__url__         = 'http://i18ntrac.ufsoft.org'
+__url__         = 'http://hg.ufsoft.org/L10nManagerTracPlugin/'
 __summary__     = 'Trac plugin to handle message catalogs'
 # XXX: extend description
 __description__ = 'Trac plugin to handle message catalogs'
