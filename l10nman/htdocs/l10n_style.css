@@ -1,0 +1,7 @@
+table.side_heads th {
+  text-align: right;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+p.help tt { font-weight: bold; }

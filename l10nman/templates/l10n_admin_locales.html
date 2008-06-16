@@ -1,0 +1,90 @@
+<!--!
+  l10n_admin_locales
+  Created by Pedro Algarvio on 2008-05-08-15
+  Copyright (c) 2008 Pedro Algarvio. All rights reserved.
+-->
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="admin.html" />
+  <head>
+    <title>L10N Manager - Manage Catalogs</title>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+        $(".suggest").suggest();
+        console.log($(".listing").width());
+        $("#new_catalog").width($(".listing").width());
+      });
+    </script>
+  </head>
+  <body>
+    <h2>Manage Catalogs</h2>
+
+    <div class="system-message" py:if="defined('error')">
+      <span class="system-message">$error</span>
+    </div>
+
+    <form action="" name="new_catalog" id="new_catalog" method="post">
+      <fieldset>
+        <legend>Add new catalog template</legend>
+        <table class="side_heads">
+          <tr>
+            <th><label for="repobase">Repository Base:</label></th>
+            <td><input class="suggest" type="text" name="repobase" size="40"
+                       value="${defined('repobase') and repobase or '/'}"/>
+            </td>
+          </tr>
+          <tr>
+            <th><label for="fpath">Catalog Path:</label></th>
+            <td><input class="suggest" type="text" name="fpath" size="40"
+                       value="${defined('fpath') and fpath or '/'}"/></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <p class="help"><em>Repository Path</em> is going to be used
+                in relative <tt>URL</tt>'s.</p>
+              <p class="help">Usually a subversion repository is splited into
+              <tt>trunk</tt>, <tt>branches</tt> and <tt>tags</tt>.</p>
+              <p class="help">So, as an example, for a <em>Catalog Path</em>
+                equal to <tt>/trunk/mypackage/i18n/mypackage.pot</tt>, the
+                <em>Repository Path</em> would be <tt>/trunk</tt>, if, in the
+                catalog template, location lines are similiar to
+                <tt>mypackage/main.py:55</tt>.</p>
+            </td>
+          </tr>
+        </table>
+        <div class="buttons">
+          <input type="submit" name="add_catalog" value="Add Catalog"/>
+        </div>
+      </fieldset>
+    </form>
+
+    <form action="" id="catalogs_listing" name="new_catalog"
+          method="post" py:if="catalogs">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th>Repository Base</th>
+            <th>File Path</th>
+            <th>Revision</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="locale in catalogs">
+            <td><input type="checkbox" value="$locale.id" name="sel"/></td>
+            <td><a href="${req.href.browser(locale.repobase)}">$locale.repobase</a></td>
+            <td><a href="${req.href.browser(locale.fpath)}">$locale.fpath</a></td>
+            <td><a href="${req.href.browser(locale.fpath, rev=locale.revision)}">$locale.revision</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="buttons">
+          <input type="submit" name="delete_selected" value="Remove Selected" />
+      </div>
+    </form>
+  </body>
+</html>

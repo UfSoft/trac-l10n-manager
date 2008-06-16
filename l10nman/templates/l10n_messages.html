@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="layout.html" />
+  <head>
+    <title>Notifications</title>
+  </head>
+  <body>
+  <!--
+    <fieldset py:for="msg in messages">
+      <legend>Catalog Message</legend>
+      <form action="">
+        <table>
+          <tr>
+            <td><label for="msgid">Msgid:</label></td>
+            <td>
+              <input type="text" name="msgid" value="$msg.msgid" disabled="disabled"/>
+            </td>
+          </tr>
+          <tr>
+            <td><label for="locations">Locations:</label></td>
+            <td>
+            <py:for each="fname, lineno in msg.locations">
+              <a href="${req.href.browser() + '/trunk/%s#L%s' % (fname, lineno)}">$fname:$lineno</a><br/>
+            </py:for>
+            </td>
+          </tr>
+          <tr>
+            <td><label for="msgstr">Msgstr:</label></td>
+            <td>
+              <input type="text" name="msgstr" value="$msg.msgstr"/>
+            </td>
+          </tr>
+        </table>
+        <div class="buttons">
+          <input type="submit" value="Save Translation"/>
+        </div>
+      </form>
+    </fieldset> -->
+
+    <table class="listing">
+      <tbody py:for="msg in catalog.messages">
+        <tr>
+          <th>MSGID</th>
+          <td>$msg.msgid</td>
+        </tr>
+        <tr py:if="msg.msgstr">
+          <th>MSGSTR</th>
+          <td>$msg.msgstr</td>
+        </tr>
+        <tr py:if="msg.flags is not [u'']">
+          <th>Flags</th>
+          <td>$msg.flags</td>
+        </tr>
+        <tr py:if="msg.ac">
+          <th>Auto-Comments</th>
+          <td>$msg.ac</td>
+        </tr>
+        <tr py:if="msg.uc">
+          <th>User-Comments</th>
+          <td>$msg.uc</td>
+        </tr>
+        <tr>
+          <th>Locations:</th>
+          <td>
+            <py:for each="loc in msg.locations">
+              <a href="${req.href.browser('%s/%s' % (catalog.repobase, loc.fname)) +
+                      '#L%s' % loc.lineno}">$loc.fname:$loc.lineno</a><br/>
+            </py:for>
+          </td>
+        </tr>
+        <tr><td colspan="2">&nbsp;</td></tr>
+      </tbody>
+    </table>
+  </body>
+</html>
