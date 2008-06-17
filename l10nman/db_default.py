@@ -23,7 +23,8 @@ tables = [
         Column('id', auto_increment=True),
         Column('locale'), # empty for catalog template
         Column('repobase'), # path in repo ie '/trunk/', '/branches/', etc
-        Column('fpath'), # catalog file path (in repo)
+        Column('fpath'), # catalog file path (in repo)'),
+        Column('plurals', type='integer'),
         Column('revision', type="integer"), # @ catalog repo revision
         Index(['locale', 'repobase', 'fpath', 'revision'])
     ],
@@ -31,6 +32,7 @@ tables = [
         Column('id', auto_increment=True),
         Column('locale_id', type="integer"), # l10n_catalogs.id
         Column('msgid'),
+        Column('plural'), # plural forms
         # Column('msgstr'), <- diferent table, ie, user versioned translations
         # Column('locations') <- diferent table
         Column('flags'),
@@ -46,6 +48,13 @@ tables = [
         Column('fname'),
         Column('lineno', type="integer"),
         Index(['msgid_id', 'fname','lineno'])
+    ],
+    Table('l10n_translations', key='id')[
+        Column('id', auto_increment=True),
+        Column('idx', type="integer"), # plural form index, 0 for non plural
+        Column('string'),
+        Column('sid'),
+        Column('ts', type="integer"), # TimeStamp
     ]
 ]
 

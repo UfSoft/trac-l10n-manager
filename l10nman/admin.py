@@ -14,6 +14,7 @@
 # =============================================================================
 
 from cStringIO import StringIO
+from operator import attrgetter
 
 from trac.core import *
 from trac.admin.api import IAdminPanelProvider
@@ -84,13 +85,18 @@ class L10NAdminModule(Component):
             raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
         entries = []
-        for entry in node.get_entries():
+#        node_entries = [p.path for p in node.get_entries()]
+        node_entries = list(node.get_entries())
+        node_entries.sort(key=attrgetter('path'))
+        for entry in node_entries:
             path = entry.path
             if not path.startswith('/'):
-                path = '/%s' % path
+                path = tag.tt('/%s' % path)
             if entry.kind == 'dir':
-                path = tag.b(path)
+                path = tag.tt(tag.em(path))
             entries.append(tag.li(path))
+#        entries.sort()
+#        print [e.__dict__ for e in entries]
         req.write(tag.ul(*entries))
         raise RequestDone
 

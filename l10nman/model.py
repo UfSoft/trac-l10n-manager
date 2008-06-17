@@ -13,8 +13,11 @@
 # Please view LICENSE for additional licensing information.
 # =============================================================================
 
+from babel.messages.plurals import PLURALS
+
 class Catalog(object):
     id = None
+    plurals = 1
     def __init__(self, env, locale='', fpath='', repobase='', revision=''):
         self.env = env
         self.locale = locale
@@ -23,12 +26,19 @@ class Catalog(object):
         self.repobase = repobase
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT id FROM l10n_catalogs WHERE locale=%s AND "
-                       "fpath=%s AND revision=%s AND repobase=%s",
+        cursor.execute("SELECT id,plurals FROM l10n_catalogs WHERE locale=%s "
+                       "AND fpath=%s AND revision=%s AND repobase=%s",
                        (self.locale, self.fpath, self.revision, self.repobase))
         row = cursor.fetchone()
         if row:
-            self.id = row[0]
+            self.id, self.plurals = row
+        else:
+            if locale in PLURALS:
+                self.plurals = PLURALS[locale][0]
+            elif '_' in locale:
+                loc = locale.split('_')[0]
+                if loc in PLURALS:
+                    self.plurals = PLURALS[loc][0]
 #        print 777, self.__dict__
 
     def save(self):
@@ -36,15 +46,15 @@ class Catalog(object):
         cursor = db.cursor()
         if not self.id:
             cursor.execute("INSERT INTO l10n_catalogs "
-                           "(locale, fpath, revision, repobase) "
+                           "(locale, repobase, fpath, plurals, revision) "
                            " VALUES (%s, %s, %s, %s)",
-                           (self.locale, self.fpath, self.revision,
-                            self.repobase))
+                           (self.locale, repobase, self.fpath,
+                            self.plurals, self.revision))
         else:
-            cursor.execute("UPDATE l10n_catalogs SET locale=%s, fpath=%s, "
-                           "revision=%s, repobase=%s WHERE id=%s",
-                           (self.locale, self.fpath, self.revision,
-                            self.repobase, self.id))
+            cursor.execute("UPDATE l10n_catalogs SET locale=%s, repobase=%s "
+                           "fpath=%s, revision=%s WHERE id=%s",
+                           (self.locale, self.repobase, self.fpath,
+                            self.revision, self.id))
         db.commit()
         cursor.execute("SELECT id FROM l10n_catalogs WHERE locale=%s AND "
                        "fpath=%s AND revision=%s AND repobase=%s",
@@ -90,6 +100,8 @@ class Catalog(object):
 
 class Message(object):
     id = None
+    msgid = None
+    plural = None
 #    msgstr = ''
     flags = ''
     ac = ''
@@ -98,7 +110,7 @@ class Message(object):
     lineno = ''
     context = ''
 
-    def __init__(self, env, locale_id, msgid, authname=None):
+    def __init__(self, env, locale_id, msgid):
         self.env = env
         self.locale_id = locale_id
         self.msgid = msgid
