@@ -47,8 +47,8 @@ class Catalog(object):
         if not self.id:
             cursor.execute("INSERT INTO l10n_catalogs "
                            "(locale, repobase, fpath, plurals, revision) "
-                           " VALUES (%s, %s, %s, %s)",
-                           (self.locale, repobase, self.fpath,
+                           " VALUES (%s, %s, %s, %s, %s)",
+                           (self.locale, self.repobase, self.fpath,
                             self.plurals, self.revision))
         else:
             cursor.execute("UPDATE l10n_catalogs SET locale=%s, repobase=%s "

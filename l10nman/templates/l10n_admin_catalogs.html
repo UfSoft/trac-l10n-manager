@@ -14,9 +14,10 @@
     <title>L10N Manager - Manage Catalogs</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
-        $("#new_catalog").width($(".listing").width());
+        $("#repobase").suggest("", "repobase");
         $("#fpath").suggest();
-        $("#locale").suggest("", "locale");
+        console.log($(".listing").width());
+        $("#new_catalog").width($(".listing").width());
       });
     </script>
   </head>
@@ -27,25 +28,19 @@
       <span class="system-message">$error</span>
     </div>
 
-    <form action="" name="new_locale" id="new_locale" method="post">
+    <form action="" name="new_catalog" id="new_catalog" method="post">
       <fieldset>
-        <legend>Add new locale</legend>
+        <legend>Add new catalog template</legend>
         <table class="side_heads">
           <tr>
-            <th><label for="catalog">Catalog Template:</label></th>
-            <td>
-              <select name="catalog">
-                <option py:for="path in catalogs" value="path">$path</option>
-              </select>
+            <th><label for="repobase">Repository Base:</label></th>
+            <td><input type="text" name="repobase" id="repobase" size="40"
+                       value="${defined('repobase') and repobase or '/'}"/>
             </td>
           </tr>
           <tr>
-            <th><label for="locale">Locale:</label></th>
-            <td><input type="text" id="locale" name="locale"/></td>
-          </tr>
-          <tr>
             <th><label for="fpath">Catalog Path:</label></th>
-            <td><input type="text" id="fpath" name="fpath" size="40"
+            <td><input type="text" name="fpath" id="fpath" size="40"
                        value="${defined('fpath') and fpath or '/'}"/></td>
           </tr>
           <tr>
@@ -63,13 +58,13 @@
           </tr>
         </table>
         <div class="buttons">
-          <input type="submit" name="add_locale" value="Add Locale"/>
+          <input type="submit" name="add_catalog" value="Add Catalog"/>
         </div>
       </fieldset>
     </form>
 
     <form action="" id="catalogs_listing" name="new_catalog"
-          method="post" py:if="locales">
+          method="post" py:if="catalogs">
       <table class="listing">
         <thead>
           <tr>
