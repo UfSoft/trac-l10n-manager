@@ -20,10 +20,12 @@ from genshi.builder import tag
 
 from trac.core import *
 from trac.web import IRequestHandler
-from trac.web.chrome import ITemplateProvider, INavigationContributor
+from trac.web.chrome import ITemplateProvider, INavigationContributor, add_link
 
 
 from trac.mimeview import *
+from trac.util.presentation import Paginator
+from trac.util.translation import _
 from trac.versioncontrol.web_ui.util import *
 
 from babel.messages.pofile import read_po
@@ -55,74 +57,38 @@ class L10nModule(Component):
     def match_request(self, req):
         match = re.match(r'^/translations(?:/(.*))?', req.path_info)
         if match:
-            print match.groups()
+            print 1234, match.groups()
             return True
 
     def process_request(self, req):
-        match = re.match(r'^/translations(?:(?P<name>/([^/]*))(?P<path>/(.*)))?', req.path_info)
-
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-
-        cursor.execute("SELECT locale, fpath, repobase, revision "
-                       "FROM l10n_catalogs WHERE id=%s", (1,))
-        row = cursor.fetchone()
-        print row
-        catalog = Catalog(self.env, *row)
-
-        print catalog
-        print catalog.messages
+        match = re.match(r'^/translations/([0-9]+)?(?:/([0-9]+)?)?', req.path_info)
+        id, page = None, None
+        data = {}
+        if match:
+            id, page = match.groups()
+        if id:
+            page = int(page or 1)
+            catalog = Catalog.get_by_id(self.env, id)
+            data['catalog'] = catalog
+            messages = Paginator(catalog.messages, page-1, 5)
+            data['messages'] = messages
+#            for idx, result in enumerate(messages):
+#                print 555, idx, result
 #
-#        self.log.debug('trying to process request')
-#        catalog_path = '/trunk/irssinotifier/i18n/irssinotifier.pot'
-#
-#        repos = self.env.get_repository(req.authname)
-#        revision = repos.youngest_rev
-#        node = get_existing_node(self.env, repos, catalog_path, revision)
-#        mime_type = node.content_type
-#        if not mime_type or mime_type == 'application/octet-stream':
-#            mime_type = get_mimetype(node.name) or mime_type or 'text/plain'
-#
-#        # We don't have to guess if the charset is specified in the
-#        # svn:mime-type property
-#        ctpos = mime_type.find('charset=')
-#        if ctpos >= 0:
-#            charset = mime_type[ctpos + 8:]
-#        else:
-#            charset = None
-#
-#        content = node.get_content()
-#        content = content.read()
-##        print content
-#
-#        msgs =  list(read_po(StringIO(content)))
-##        _msgs = []
-#        catalog = Catalog(self.env, '', catalog_path, revision, '/trunk')
-#        catalog.save()
-##        print 555, catalog.__dict__
-#        for msg in msgs[1:]:
-#            m = Message(self.env, catalog.id, msg.id)
-#            m.msgstr = msg.string
-#            m.flags = msg.flags
-#            m.ac = msg.auto_comments
-#            m.uc = msg.user_comments
-#            m.previous_id = msg.previous_id
-#            m.lineno = msg.lineno
-#            m.save()
-#            try:
-#                m.context = msg.context
-#            except AttributeError:
-#                pass
-#            print 789, msg.locations
-#            for fname,lineno in msg.locations:
-#                print 7899, fname, lineno
-#                location = Location(self.env, m.id, fname, lineno)
-#                location.save()
-##            _msgs.append(m)
-#
-##        for msg in _msgs:
-##            print 444, msg.locations
-##        print _msgs
-##        catalog = Catalog(self.env, '', catalog_path, revision)
-##        print 444, catalog.messages[-1].__dict__
-        return 'l10n_messages.html', {'catalog': catalog}, None
+            shown_pages = messages.get_shown_pages(41)
+            pagedata = []
+            for show_page in shown_pages:
+                page_href = req.href.translations("/%s/%s" % (id, show_page))
+                pagedata.append([page_href, None, str(show_page), 'page %s' % show_page])
+            fields = ['href', 'class', 'string', 'title']
+            messages.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+            messages.current_page = {'href': None, 'class': 'current',
+                                    'string': str(messages.page + 1),
+                                    'title':None}
+            if messages.has_next_page:
+                next_href = req.href.translations("/%s/%s" % (id, page+1))
+                add_link(req, 'next', next_href, _('Next Page'))
+            if messages.has_previous_page:
+                prev_href = req.href.translations("/%s/%s" % (id, page-1))
+                add_link(req, 'prev', prev_href, _('Previous Page'))
+        return 'l10n_messages.html', data, None
