@@ -5,43 +5,17 @@
     xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="layout.html" />
   <head>
-    <title>Notifications</title>
+    <title>Translations</title>
   </head>
   <body>
-  <!--
-    <fieldset py:for="msg in messages">
-      <legend>Catalog Message</legend>
-      <form action="">
-        <table>
-          <tr>
-            <td><label for="msgid">Msgid:</label></td>
-            <td>
-              <input type="text" name="msgid" value="$msg.msgid" disabled="disabled"/>
-            </td>
-          </tr>
-          <tr>
-            <td><label for="locations">Locations:</label></td>
-            <td>
-            <py:for each="fname, lineno in msg.locations">
-              <a href="${req.href.browser() + '/trunk/%s#L%s' % (fname, lineno)}">$fname:$lineno</a><br/>
-            </py:for>
-            </td>
-          </tr>
-          <tr>
-            <td><label for="msgstr">Msgstr:</label></td>
-            <td>
-              <input type="text" name="msgstr" value="$msg.msgstr"/>
-            </td>
-          </tr>
-        </table>
-        <div class="buttons">
-          <input type="submit" value="Save Translation"/>
-        </div>
-      </form>
-    </fieldset> -->
-
+    <py:if test="messages">
+      <h2>
+        Translations <span class="numresults">(${messages.displayed_items()})</span>
+      </h2>
+      <xi:include py:with="paginator = messages" href="page_index.html" />
+    </py:if>
     <table class="listing">
-      <tbody py:for="msg in catalog.messages">
+      <tbody py:for="msg in messages">
         <tr>
           <th>MSGID</th>
           <td>$msg.msgid</td>
@@ -74,5 +48,6 @@
         <tr><td colspan="2">&nbsp;</td></tr>
       </tbody>
     </table>
+    <xi:include py:with="paginator = messages" href="page_index.html" />
   </body>
 </html>
