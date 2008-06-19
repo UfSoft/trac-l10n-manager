@@ -13,12 +13,13 @@
 # Please view LICENSE for additional licensing information.
 # =============================================================================
 
+
 from babel.messages.plurals import PLURALS
 
 class Catalog(object):
     id = None
     plurals = 1
-    def __init__(self, env, locale='', fpath='', repobase='', revision=''):
+    def __init__(self, env, locale='', repobase='', fpath='', revision=''):
         self.env = env
         self.locale = locale
         self.fpath = fpath
@@ -97,6 +98,35 @@ class Catalog(object):
         cursor.execute("DELETE FROM l10n_catalogs WHERE id=%s", (self.id,))
         db.commit()
 
+    @classmethod
+    def get_by_id(cls, env, id):
+        db = env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("SELECT locale, repobase, fpath, revision FROM "
+                       "l10n_catalogs WHERE id=%s", (id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return Catalog(env, *row)
+#    get = classmethod(get_by_id)
+
+    @classmethod
+    def get_all(cls, env, locale=None, no_empty_locale=False):
+        db = env.get_db_cnx()
+        cursor = db.cursor()
+        sql = "SELECT locale, repobase, fpath, revision FROM l10n_catalogs"
+        if locale:
+            sql += " WHERE locale=%s"
+            cursor.execute(sql, (locale,))
+        elif no_empty_locale and not locale:
+            sql += " WHERE locale!=''"
+            cursor.execute(sql)
+        else:
+            cursor.execute(sql)
+        catalogs = []
+        for locale, repobase, fpath, revision in cursor:
+            catalogs.append(Catalog(env, locale, repobase, fpath, revision))
+        return catalogs
 
 class Message(object):
     id = None
@@ -117,14 +147,14 @@ class Message(object):
 
         db = env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT id,flags,ac,uc,previous_id,lineno,context "
-                       "FROM l10n_messages WHERE locale_id=%s AND msgid=%s",
+        cursor.execute("SELECT id,plural,flags,ac,uc,previous_id,lineno,context"
+                       " FROM l10n_messages WHERE locale_id=%s AND msgid=%s",
                        (locale_id, msgid))
         row = cursor.fetchone()
         if row:
-            print row
+#            print row
 #            attrs = list(row)
-            self.id, self.flags, self.ac, self.uc, \
+            self.id, self.plural, self.flags, self.ac, self.uc, \
                 self.previous_id, self.lineno, self.context = row
             self.flags = self.flags.split(',')
 #            self.msgstr
@@ -141,17 +171,17 @@ class Message(object):
         print 2, ','.join(self.flags), '\n'.join(self.ac), '\n'.join(self.uc), \
                         self.previous_id, self.lineno, self.context, \
                         self.msgid, self.locale_id
-        cursor.execute("UPDATE l10n_messages SET flags=%s, ac=%s, uc=%s,"
+        cursor.execute("UPDATE l10n_messages SET plural=%s, flags=%s, ac=%s, uc=%s,"
                        "previous_id=%s, lineno=%s, context=%s WHERE msgid=%s AND locale_id=%s",
-                       (','.join(list(self.flags)), '\n'.join(self.ac), '\n'.join(self.uc),
+                       (self.plural, ','.join(list(self.flags)), '\n'.join(self.ac), '\n'.join(self.uc),
                         '\n'.join(self.previous_id), self.lineno, self.context,
                         self.msgid, self.locale_id))
         if not cursor.rowcount:
             print 1
-            cursor.execute("INSERT INTO l10n_messages (locale_id,msgid,"
-                           "flags,ac,uc,previous_id,lineno,context) VALUES (%s,"
+            cursor.execute("INSERT INTO l10n_messages (locale_id,msgid,plural,"
+                           "flags,ac,uc,previous_id,lineno,context) VALUES (%s,%s,"
                            "%s,%s,%s,%s,%s,%s,%s)",
-                           (self.locale_id, self.msgid, ','.join(self.flags),
+                           (self.locale_id, self.msgid, self.plural, ','.join(self.flags),
                             '\n'.join(self.ac), '\n'.join(self.uc), '\n'.join(self.previous_id), self.lineno,
                             self.context))
         db.commit()
@@ -184,7 +214,7 @@ class Message(object):
             location = Location(self.env, *row)
             locs.append(location)
 #            locs.append(tuple(row))
-        print 999, locs
+#        print 999, locs
         return locs
     locations = property(locations)
 
@@ -244,8 +274,8 @@ class Location(object):
                        (self.msgid_id, self.fname, self.lineno))
         db.commit()
 
-    def __iter__(self):
-        yield self.fname, self.lineno
+#    def __iter__(self):
+#        yield self.fname, self.lineno
 
 
 
