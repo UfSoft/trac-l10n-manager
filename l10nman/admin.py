@@ -13,6 +13,7 @@
 # Please view LICENSE for additional licensing information.
 # =============================================================================
 
+
 from cStringIO import StringIO
 from operator import attrgetter
 
@@ -36,8 +37,7 @@ from babel.messages.pofile import read_po
 
 
 from l10nman.model import *
-
-AVAILABLE_LOCALES = {}
+from l10nman.utils import AVAILABLE_LOCALES
 
 class L10NAdminModule(Component):
     implements(IAdminPanelProvider)
@@ -76,14 +76,7 @@ class L10NAdminModule(Component):
             elif req.args.get('add_catalog'):
                 data.update(self._add_catalog(req))
 
-        cursor.execute("SELECT fpath, repobase, revision FROM "
-                       "l10n_catalogs WHERE locale=''")
-        rows = cursor.fetchall()
-        catalogs = []
-        for row in rows:
-            cat = Catalog(self.env, '', *row)
-            catalogs.append(cat)
-        print catalogs
+        catalogs = Catalog.get_all(self.env, locale='')
         data['catalogs'] = catalogs
         data['youngest_rev'] = self.env.get_repository(req.authname).youngest_rev
         return 'l10n_admin_catalogs.html', data
@@ -95,14 +88,18 @@ class L10NAdminModule(Component):
         if req.method == 'POST':
             if req.args.get('delete_selected'):
                 data.update(self._delete_locale(req))
-            elif req.args.get('add_catalog'):
+            elif req.args.get('add_locale'):
                 data.update(self._add_locale(req))
 
-        cursor.execute("SELECT fpath FROM l10n_catalogs WHERE locale=''")
-        catalogs = cursor.fetchall()
-        data['catalogs'] = catalogs
-        cursor.execute("SELECT fpath FROM l10n_catalogs WHERE locale!=''")
-        locales = cursor.fetchall()
+        catalogs = Catalog.get_all(self.env, locale='')
+        data['catalog_templates'] = catalogs
+        locales = Catalog.get_all(self.env, no_empty_locale=True)
+#        cursor.execute("SELECT id FROM l10n_catalogs WHERE locale!=''")
+#        locales = []
+#        for row in cursor.fetchall():
+#            locale = Catalog.get_by_id(self.env, row[0])
+#            locales.append(locale)
+        print 456798, locales
         data['locales'] = locales
         data['youngest_rev'] = self.env.get_repository(req.authname).youngest_rev
         return 'l10n_admin_locales.html', data
@@ -133,7 +130,7 @@ class L10NAdminModule(Component):
             if entry.kind == 'dir':
                 req.write(tag.li(path))
             elif not dirs_only:
-                req.write.append(tag.li(path))
+                req.write(tag.li(path))
         req.write('</ul>')
         raise RequestDone
 
@@ -141,14 +138,6 @@ class L10NAdminModule(Component):
         query = req.args.get('locale')
         if not query:
             raise RequestDone
-
-        if not AVAILABLE_LOCALES:
-            self.log.debug("Building Locales Mapping")
-            locales = map(Locale.parse, localedata.list())
-            for locale in locales:
-                if str(locale) not in AVAILABLE_LOCALES:
-                    AVAILABLE_LOCALES[str(locale)] = (
-                        str(locale), locale.english_name, locale.display_name)
 
         matches = [AVAILABLE_LOCALES[l]
                    for l in AVAILABLE_LOCALES.keys() if l.startswith(query)]
@@ -165,17 +154,11 @@ class L10NAdminModule(Component):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         selected = req.args.getlist('sel')
-        print 987, selected
         for sel in selected:
-            cursor.execute("SELECT locale, fpath, repobase, revision "
-                           "FROM l10n_catalogs WHERE id=%s", (sel,))
-            row = cursor.fetchone()
-            if row:
-                catalog = Catalog(self.env, *row)
+            catalog = Catalog.get_by_id(self.env, sel)
+            if catalog:
                 catalog.delete()
-
-        add_notice(req, "Catalog(s) deleted.")
-
+                add_notice(req, "Catalog(s) deleted.")
         return {}
 
     def _add_catalog(self, req):
@@ -198,7 +181,7 @@ class L10NAdminModule(Component):
             raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
         locale = req.args.get('locale', '')
-        catalog = Catalog(self.env, locale, fpath, repobase, node.rev)
+        catalog = Catalog(self.env, locale, repobase, fpath, node.rev)
         if catalog.id:
             errors.append("Catalog already exists")
         else:
@@ -206,7 +189,12 @@ class L10NAdminModule(Component):
 
         messages = list(read_po(StringIO(node.get_content().read())))
         for msg in messages[1:]:
-            m = Message(self.env, catalog.id, msg.id)
+            if msg.pluralizable:
+                print 999999999999999999999999999999, msg.id
+                m = Message(self.env, catalog.id, msg.id[0])
+                m.plural = msg.id[1]
+            else:
+                m = Message(self.env, catalog.id, msg.id)
             m.msgstr = msg.string
             m.flags = msg.flags
             m.ac = msg.auto_comments
@@ -236,22 +224,25 @@ class L10NAdminModule(Component):
         cursor = db.cursor()
         data = {}
         errors = []
-        repobase = req.args.get('repobase', None)
-        if not repobase:
-            errors.append("You must define the Repository Base")
-        fpath = req.args.get('fpath')
-        if not fpath or fpath == '/':
-            errors.append("You must define the catalog path")
+        template_id = req.args.get('catalog_template', None)
+        if not template_id:
+            errors.append("You must first create a catalog template")
+        catalog_template = Catalog.get_by_id(self.env, req.args.get('catalog_template'))
+        locale = req.args.get('locale')
+        if not locale:
+            errors.append("You must define the new catalog's locale")
 
-        repos = self.env.get_repository(req.authname)
-        revision = repos.youngest_rev
-        try:
-            node = get_existing_node(req, repos, fpath, revision)
-        except NoSuchChangeset, e:
-            raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
+        catalog_path = req.args.get('catalog')
+        if catalog_path:
+            repos = self.env.get_repository(req.authname)
+            revision = repos.youngest_rev
+            try:
+                node = get_existing_node(req, repos, catalog_path, revision)
+            except NoSuchChangeset, e:
+                raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
-        locale = req.args.get('locale', '')
-        catalog = Catalog(self.env, locale, fpath, repobase, node.rev)
+        catalog = Catalog(self.env, locale, catalog_template.repobase,
+                          catalog_path, node.rev)
         if catalog.id:
             errors.append("Catalog already exists")
         else:
@@ -283,3 +274,22 @@ class L10NAdminModule(Component):
             data['fpath'] = fpath
         add_notice(req, "Catalog added.")
         return data
+
+    def _delete_locale(self, req):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        selected = req.args.getlist('sel')
+        print 987, selected
+        for id in selected:
+            catalog = Catalog.get_by_id(self.env, id)
+#            cursor.execute("SELECT locale, repobase, fpath, revision "
+#                           "FROM l10n_catalogs WHERE id=%s", (sel,))
+#            row = cursor.fetchone()
+#            if row:
+#                catalog = Catalog(self.env, *row)
+            if catalog:
+                catalog.delete()
+
+        add_notice(req, "Catalog(s) deleted.")
+
+        return {}
