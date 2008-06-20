@@ -33,28 +33,9 @@
         <legend>Add new catalog template</legend>
         <table class="side_heads">
           <tr>
-            <th><label for="repobase">Repository Base:</label></th>
-            <td><input type="text" name="repobase" id="repobase" size="40"
-                       value="${defined('repobase') and repobase or '/'}"/>
-            </td>
-          </tr>
-          <tr>
             <th><label for="fpath">Catalog Path:</label></th>
             <td><input type="text" name="fpath" id="fpath" size="40"
                        value="${defined('fpath') and fpath or '/'}"/></td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <p class="help"><em>Repository Path</em> is going to be used
-                in relative <tt>URL</tt>'s.</p>
-              <p class="help">Usually a subversion repository is splited into
-              <tt>trunk</tt>, <tt>branches</tt> and <tt>tags</tt>.</p>
-              <p class="help">So, as an example, for a <em>Catalog Path</em>
-                equal to <tt>/trunk/mypackage/i18n/mypackage.pot</tt>, the
-                <em>Repository Path</em> would be <tt>/trunk</tt>, if, in the
-                catalog template, location lines are similiar to
-                <tt>mypackage/main.py:55</tt>.</p>
-            </td>
           </tr>
         </table>
         <div class="buttons">
@@ -69,7 +50,6 @@
         <thead>
           <tr>
             <th>&nbsp;</th>
-            <th>Repository Base</th>
             <th>File Path</th>
             <th>Revision</th>
           </tr>
@@ -77,7 +57,6 @@
         <tbody>
           <tr py:for="locale in catalogs">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
-            <td><a href="${req.href.browser(locale.repobase)}">$locale.repobase</a></td>
             <td><a href="${req.href.browser(locale.fpath)}">$locale.fpath</a></td>
             <td>
               <a href="${req.href.browser(locale.fpath, rev=locale.revision)}"

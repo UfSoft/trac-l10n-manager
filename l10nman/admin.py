@@ -163,12 +163,15 @@ class L10NAdminModule(Component):
         cursor = db.cursor()
         data = {}
         errors = []
-        repobase = req.args.get('repobase', None)
-        if not repobase:
-            errors.append("You must define the Repository Base")
         fpath = req.args.get('fpath')
+        def add_error(error):
+            errors.append()
+            data['error'] = tag.ul(*[tag.li(e) for e in errors])
+            data['fpath'] = fpath
+            return data
+
         if not fpath or fpath == '/':
-            errors.append("You must define the catalog path")
+            add_error("You must define the catalog path")
 
         repos = self.env.get_repository(req.authname)
         revision = repos.youngest_rev
@@ -178,9 +181,9 @@ class L10NAdminModule(Component):
             raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
         locale = req.args.get('locale', '')
-        catalog = Catalog(self.env, locale, repobase, fpath, node.rev)
+        catalog = Catalog(self.env, locale, fpath, node.rev)
         if catalog.id:
-            errors.append("Catalog already exists")
+            add_error("Catalog already exists")
         else:
             catalog.save()
 
@@ -206,11 +209,6 @@ class L10NAdminModule(Component):
                 location = Location(self.env, m.id, fname, lineno)
                 location.href = self._get_location_href(req, fpath, fname, lineno)
                 location.save()
-
-        if errors:
-            data['error'] = tag.ul(*[tag.li(e) for e in errors])
-            data['repobase'] = repobase
-            data['fpath'] = fpath
         add_notice(req, "Catalog added.")
         return data
 

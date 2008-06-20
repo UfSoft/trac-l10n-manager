@@ -22,7 +22,6 @@ tables = [
     Table('l10n_catalogs', key='id')[
         Column('id', auto_increment=True),
         Column('locale'), # empty for catalog template
-        Column('repobase'), # path in repo ie '/trunk/', '/branches/', etc
         Column('fpath'), # catalog file path (in repo)'),
         Column('plurals', type='integer'),
         Column('revision', type="integer"), # @ catalog repo revision

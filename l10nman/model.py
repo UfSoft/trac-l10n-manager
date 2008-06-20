@@ -19,17 +19,16 @@ from babel.messages.plurals import PLURALS
 class Catalog(object):
     id = None
     plurals = 1
-    def __init__(self, env, locale='', repobase='', fpath='', revision=''):
+    def __init__(self, env, locale='', fpath='', revision=''):
         self.env = env
         self.locale = locale
         self.fpath = fpath
         self.revision = revision
-        self.repobase = repobase
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         cursor.execute("SELECT id,plurals FROM l10n_catalogs WHERE locale=%s "
-                       "AND fpath=%s AND revision=%s AND repobase=%s",
-                       (self.locale, self.fpath, self.revision, self.repobase))
+                       "AND fpath=%s AND revision=%s",
+                       (self.locale, self.fpath, self.revision))
         row = cursor.fetchone()
         if row:
             self.id, self.plurals = row
@@ -46,41 +45,38 @@ class Catalog(object):
         cursor = db.cursor()
         if not self.id:
             cursor.execute("INSERT INTO l10n_catalogs "
-                           "(locale, repobase, fpath, plurals, revision) "
-                           " VALUES (%s, %s, %s, %s, %s)",
-                           (self.locale, self.repobase, self.fpath,
-                            self.plurals, self.revision))
+                           "(locale, fpath, plurals, revision) "
+                           " VALUES (%s, %s, %s, %s)",
+                           (self.locale, self.fpath, self.plurals,
+                            self.revision))
         else:
-            cursor.execute("UPDATE l10n_catalogs SET locale=%s, repobase=%s "
+            cursor.execute("UPDATE l10n_catalogs SET locale=%s "
                            "fpath=%s, revision=%s WHERE id=%s",
-                           (self.locale, self.repobase, self.fpath,
-                            self.revision, self.id))
+                           (self.locale, self.fpath, self.revision, self.id))
         db.commit()
         cursor.execute("SELECT id FROM l10n_catalogs WHERE locale=%s AND "
-                       "fpath=%s AND revision=%s AND repobase=%s",
-                       (self.locale, self.fpath, self.revision, self.repobase))
+                       "fpath=%s AND revision=%s",
+                       (self.locale, self.fpath, self.revision))
         row = cursor.fetchone()
         if row:
             self.id = row[0]
 
+    @property
     def messages(self):
         if not self.id:
             return []
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT DISTINCT msgid FROM l10n_messages INNER JOIN "
-                       "l10n_locations ON (l10n_locations.msgid_id=l10n_messages.id) "
+        cursor.execute("SELECT DISTINCT l10n_messages.msgid, l10n_messages.id "
+                       "FROM l10n_messages INNER JOIN l10n_locations ON "
+                       "(l10n_locations.msgid_id=l10n_messages.id) "
                        "WHERE locale_id=%s ORDER BY l10n_locations.fname,"
                        "l10n_locations.lineno,l10n_messages.msgid ", (self.id,))
-        rows = cursor.fetchall()
         messages = []
-        for row in rows:
-            msgid = row[0]
-            msg = Message(self.env, self.id, msgid)
+        for msgid, id in cursor:
+            msg = Message.get_by_id(self.env, id)
             messages.append(msg)
-
         return messages
-    messages = property(messages)
 
     def delete(self):
         for msg in self.messages:
@@ -94,7 +90,7 @@ class Catalog(object):
     def get_by_id(cls, env, id):
         db = env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT locale, repobase, fpath, revision FROM "
+        cursor.execute("SELECT locale, fpath, revision FROM "
                        "l10n_catalogs WHERE id=%s", (id,))
         row = cursor.fetchone()
         if not row:
@@ -105,7 +101,7 @@ class Catalog(object):
     def get_all(cls, env, locale=None, no_empty_locale=False):
         db = env.get_db_cnx()
         cursor = db.cursor()
-        sql = "SELECT locale, repobase, fpath, revision FROM l10n_catalogs"
+        sql = "SELECT locale, fpath, revision FROM l10n_catalogs"
         if locale:
             sql += " WHERE locale=%s"
             cursor.execute(sql, (locale,))
@@ -115,8 +111,8 @@ class Catalog(object):
         else:
             cursor.execute(sql)
         catalogs = []
-        for locale, repobase, fpath, revision in cursor:
-            catalogs.append(Catalog(env, locale, repobase, fpath, revision))
+        for locale, fpath, revision in cursor:
+            catalogs.append(Catalog(env, locale, fpath, revision))
         return catalogs
 
 class Message(object):
@@ -184,6 +180,17 @@ class Message(object):
                        "locale_id=%s AND msgid=%s",
                        (self.locale_id, self.msgid))
         db.commit()
+
+    @classmethod
+    def get_by_id(cls, env, id):
+        db = env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("SELECT locale_id, msgid FROM "
+                       "l10n_messages WHERE id=%s", (id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return Message(env, *row)
 
     def locations(self):
         if not self.id:
