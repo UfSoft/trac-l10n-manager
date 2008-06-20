@@ -20,8 +20,8 @@ from genshi.builder import tag
 
 from trac.core import *
 from trac.web import IRequestHandler
-from trac.web.chrome import ITemplateProvider, INavigationContributor, add_link
-
+from trac.web.chrome import ITemplateProvider, INavigationContributor
+from trac.web.chrome import add_link, add_stylesheet
 
 from trac.mimeview import *
 from trac.util.presentation import Paginator
@@ -61,34 +61,34 @@ class L10nModule(Component):
             return True
 
     def process_request(self, req):
+        add_stylesheet(req, 'l10nman/css/l10n_style.css')
         match = re.match(r'^/translations/([0-9]+)?(?:/([0-9]+)?)?', req.path_info)
         id, page = None, None
         data = {}
         if match:
             id, page = match.groups()
+
         if id:
             page = int(page or 1)
             catalog = Catalog.get_by_id(self.env, id)
             data['catalog'] = catalog
-            messages = Paginator(catalog.messages, page-1, 5)
-            data['messages'] = messages
-#            for idx, result in enumerate(messages):
-#                print 555, idx, result
-#
-            shown_pages = messages.get_shown_pages(41)
+            paginator = Paginator(catalog.messages, page-1, 5)
+            data['messages'] = paginator
+            shown_pages = paginator.get_shown_pages(17)
             pagedata = []
             for show_page in shown_pages:
                 page_href = req.href.translations("/%s/%s" % (id, show_page))
                 pagedata.append([page_href, None, str(show_page), 'page %s' % show_page])
             fields = ['href', 'class', 'string', 'title']
-            messages.shown_pages = [dict(zip(fields, p)) for p in pagedata]
-            messages.current_page = {'href': None, 'class': 'current',
-                                    'string': str(messages.page + 1),
+            paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+            paginator.current_page = {'href': None, 'class': 'current',
+                                    'string': str(paginator.page + 1),
                                     'title':None}
-            if messages.has_next_page:
+            if paginator.has_next_page:
                 next_href = req.href.translations("/%s/%s" % (id, page+1))
                 add_link(req, 'next', next_href, _('Next Page'))
-            if messages.has_previous_page:
+            if paginator.has_previous_page:
                 prev_href = req.href.translations("/%s/%s" % (id, page-1))
                 add_link(req, 'prev', prev_href, _('Previous Page'))
+#        data['page_href'] = req.href.translations()
         return 'l10n_messages.html', data, None

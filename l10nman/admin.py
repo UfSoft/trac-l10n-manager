@@ -13,9 +13,11 @@
 # Please view LICENSE for additional licensing information.
 # =============================================================================
 
+import posixpath
 
 from cStringIO import StringIO
 from operator import attrgetter
+
 
 from trac.core import *
 from trac.admin.api import IAdminPanelProvider
@@ -40,6 +42,7 @@ from l10nman.model import *
 from l10nman.utils import AVAILABLE_LOCALES
 
 class L10NAdminModule(Component):
+    hrefs_cache = {}
     implements(IAdminPanelProvider)
 
     # IAdminPageProvider methods
@@ -94,12 +97,6 @@ class L10NAdminModule(Component):
         catalogs = Catalog.get_all(self.env, locale='')
         data['catalog_templates'] = catalogs
         locales = Catalog.get_all(self.env, no_empty_locale=True)
-#        cursor.execute("SELECT id FROM l10n_catalogs WHERE locale!=''")
-#        locales = []
-#        for row in cursor.fetchall():
-#            locale = Catalog.get_by_id(self.env, row[0])
-#            locales.append(locale)
-        print 456798, locales
         data['locales'] = locales
         data['youngest_rev'] = self.env.get_repository(req.authname).youngest_rev
         return 'l10n_admin_locales.html', data
@@ -190,7 +187,6 @@ class L10NAdminModule(Component):
         messages = list(read_po(StringIO(node.get_content().read())))
         for msg in messages[1:]:
             if msg.pluralizable:
-                print 999999999999999999999999999999, msg.id
                 m = Message(self.env, catalog.id, msg.id[0])
                 m.plural = msg.id[1]
             else:
@@ -206,10 +202,9 @@ class L10NAdminModule(Component):
                 m.context = msg.context
             except AttributeError:
                 pass
-            print 789, msg.locations
             for fname,lineno in msg.locations:
-                print 7899, fname, lineno
                 location = Location(self.env, m.id, fname, lineno)
+                location.href = self._get_location_href(req, fpath, fname, lineno)
                 location.save()
 
         if errors:
@@ -262,9 +257,7 @@ class L10NAdminModule(Component):
                 m.context = msg.context
             except AttributeError:
                 pass
-            print 789, msg.locations
             for fname,lineno in msg.locations:
-                print 7899, fname, lineno
                 location = Location(self.env, m.id, fname, lineno)
                 location.save()
 
@@ -293,3 +286,26 @@ class L10NAdminModule(Component):
         add_notice(req, "Catalog(s) deleted.")
 
         return {}
+
+    def _get_location_href(self, req, catalog_path, fname, lineno):
+        catalog_path_parts = catalog_path.replace('\\', '/').split('/')
+        href = req.href.browser
+
+        repos = self.env.get_repository(req.authname)
+        revision = repos.youngest_rev
+
+        fname = fname.replace('\\', '/')
+        path = ''
+        for part in catalog_path_parts:
+            path = posixpath.join(path, part)
+            if fname not in self.hrefs_cache:
+                try:
+                    repos.get_node(posixpath.join(path, fname), revision)
+                    self.hrefs_cache[fname] = posixpath.join(path, fname)
+                except TracError:
+                    self.hrefs_cache[fname] = False
+        if self.hrefs_cache.get(fname) is not False:
+            print href(self.hrefs_cache.get(fname)) + "#L%d" % lineno
+            return href(self.hrefs_cache.get(fname)) + "#L%d" % lineno
+        else:
+            return ''

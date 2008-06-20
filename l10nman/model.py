@@ -40,7 +40,6 @@ class Catalog(object):
                 loc = locale.split('_')[0]
                 if loc in PLURALS:
                     self.plurals = PLURALS[loc][0]
-#        print 777, self.__dict__
 
     def save(self):
         db = self.env.get_db_cnx()
@@ -64,8 +63,6 @@ class Catalog(object):
         if row:
             self.id = row[0]
 
-#        print 777, self.__dict__
-
     def messages(self):
         if not self.id:
             return []
@@ -75,17 +72,12 @@ class Catalog(object):
                        "l10n_locations ON (l10n_locations.msgid_id=l10n_messages.id) "
                        "WHERE locale_id=%s ORDER BY l10n_locations.fname,"
                        "l10n_locations.lineno,l10n_messages.msgid ", (self.id,))
-#        cursor.execute("SELECT msgid from l10n_messages WHERE locale_id=%s",
-#                       (self.id,))
         rows = cursor.fetchall()
-#        processed = []
         messages = []
         for row in rows:
             msgid = row[0]
-#            if msgid not in processed:
             msg = Message(self.env, self.id, msgid)
             messages.append(msg)
-#                processed.append(msgid)
 
         return messages
     messages = property(messages)
@@ -108,7 +100,6 @@ class Catalog(object):
         if not row:
             return None
         return Catalog(env, *row)
-#    get = classmethod(get_by_id)
 
     @classmethod
     def get_all(cls, env, locale=None, no_empty_locale=False):
@@ -132,7 +123,6 @@ class Message(object):
     id = None
     msgid = None
     plural = None
-#    msgstr = ''
     flags = ''
     ac = ''
     uc = ''
@@ -152,15 +142,9 @@ class Message(object):
                        (locale_id, msgid))
         row = cursor.fetchone()
         if row:
-#            print row
-#            attrs = list(row)
             self.id, self.plural, self.flags, self.ac, self.uc, \
                 self.previous_id, self.lineno, self.context = row
             self.flags = self.flags.split(',')
-#            self.msgstr
-#            for attr in ('context', 'lineno', 'previous_id', 'ac', 'uc',
-#                         'flags', 'string'):
-#                setattr(self, attr, attrs.pop())
 
 
     def save(self):
@@ -226,6 +210,7 @@ class Location(object):
     msgid_id = None
     fname = None
     lineno = None
+    href = None
 
     def __init__(self, env, msgid_id, fname=None, lineno=None):
         self.env = env
@@ -235,7 +220,7 @@ class Location(object):
         self.lineno = lineno
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT id FROM l10n_locations WHERE msgid_id=%s AND "
+        cursor.execute("SELECT id, href FROM l10n_locations WHERE msgid_id=%s AND "
                        "fname=%s AND lineno=%s",
                        (self.msgid_id, self.fname, self.lineno))
 #        rows = cursor.fetchall()
@@ -244,20 +229,22 @@ class Location(object):
 #        for row in rows:
 #            self.locs.append(tuple(row))
         if row:
-            self.id = row[0]
+            self.id, self.href = row
 
     def save(self):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         if self.id:
-            cursor.execute("UPDATE l10n_locations SET fname=%s, lineno=%s, msgid_id=%s "
-                           "WHERE id=%s",
-                           (self.fname, self.lineno, self.msgid_id, self.id,))
+            cursor.execute("UPDATE l10n_locations SET fname=%s, lineno=%s, "
+                           "msgid_id=%s, href=%s WHERE id=%s",
+                           (self.fname, self.lineno, self.msgid_id,
+                            self.href, self.id))
 #        if not cursor.rowcount:
         else:
             cursor.execute("INSERT INTO l10n_locations "
-                           "(msgid_id, fname, lineno) VALUES (%s, %s, %s)",
-                           (self.msgid_id, self.fname, self.lineno))
+                           "(msgid_id, fname, lineno, href) VALUES "
+                           "(%s, %s, %s, %s)",
+                           (self.msgid_id, self.fname, self.lineno, self.href))
         db.commit()
         cursor.execute("SELECT id FROM l10n_locations WHERE msgid_id=%s AND "
                        "fname=%s AND lineno=%s",
@@ -274,8 +261,6 @@ class Location(object):
                        (self.msgid_id, self.fname, self.lineno))
         db.commit()
 
-#    def __iter__(self):
-#        yield self.fname, self.lineno
 
 
 

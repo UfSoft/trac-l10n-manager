@@ -9,3 +9,12 @@ p.help tt { font-weight: bold; }
 input.loading {
   background: url("../../common/loading.gif") right center no-repeat;
 }
+
+
+.translations h2 {
+  text-align: center;
+  background:#F7F7F7 none repeat scroll 0% 0%;
+  border-bottom:1px solid #D7D7D7;
+  margin:2em 0pt 0pt;
+  padding:0pt 0.33em;
+}

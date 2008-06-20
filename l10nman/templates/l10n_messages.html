@@ -8,46 +8,48 @@
     <title>Translations</title>
   </head>
   <body>
-    <py:if test="messages">
-      <h2>
-        Translations <span class="numresults">(${messages.displayed_items()})</span>
-      </h2>
+    <div id="content" class="translations">
+      <h1>Messages for locale ${ catalog.locale or 'Unknown' }</h1>
+      <py:if test="messages">
+        <h2>
+          Translations <span class="numresults">(${messages.displayed_items()})</span>
+        </h2>
+        <xi:include py:with="paginator = messages" href="page_index.html" />
+      </py:if>
+      <table class="listing">
+        <tbody py:for="msg in messages">
+          <tr>
+            <th>MSGID</th>
+            <td>$msg.msgid</td>
+          </tr>
+          <tr py:if="msg.msgstr">
+            <th>MSGSTR</th>
+            <td>$msg.msgstr</td>
+          </tr>
+          <tr py:if="msg.flags is not [u'']">
+            <th>Flags</th>
+            <td>$msg.flags</td>
+          </tr>
+          <tr py:if="msg.ac">
+            <th>Auto-Comments</th>
+            <td>$msg.ac</td>
+          </tr>
+          <tr py:if="msg.uc">
+            <th>User-Comments</th>
+            <td>$msg.uc</td>
+          </tr>
+          <tr>
+            <th>Locations:</th>
+            <td>
+              <py:for each="loc in msg.locations">
+                <a href="$loc.href">$loc.fname:$loc.lineno</a><br/>
+              </py:for>
+            </td>
+          </tr>
+          <tr><td colspan="2">&nbsp;</td></tr>
+        </tbody>
+      </table>
       <xi:include py:with="paginator = messages" href="page_index.html" />
-    </py:if>
-    <table class="listing">
-      <tbody py:for="msg in messages">
-        <tr>
-          <th>MSGID</th>
-          <td>$msg.msgid</td>
-        </tr>
-        <tr py:if="msg.msgstr">
-          <th>MSGSTR</th>
-          <td>$msg.msgstr</td>
-        </tr>
-        <tr py:if="msg.flags is not [u'']">
-          <th>Flags</th>
-          <td>$msg.flags</td>
-        </tr>
-        <tr py:if="msg.ac">
-          <th>Auto-Comments</th>
-          <td>$msg.ac</td>
-        </tr>
-        <tr py:if="msg.uc">
-          <th>User-Comments</th>
-          <td>$msg.uc</td>
-        </tr>
-        <tr>
-          <th>Locations:</th>
-          <td>
-            <py:for each="loc in msg.locations">
-              <a href="${req.href.browser('%s/%s' % (catalog.repobase, loc.fname)) +
-                      '#L%s' % loc.lineno}">$loc.fname:$loc.lineno</a><br/>
-            </py:for>
-          </td>
-        </tr>
-        <tr><td colspan="2">&nbsp;</td></tr>
-      </tbody>
-    </table>
-    <xi:include py:with="paginator = messages" href="page_index.html" />
+    </div>
   </body>
 </html>

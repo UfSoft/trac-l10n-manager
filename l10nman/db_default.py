@@ -47,6 +47,7 @@ tables = [
         Column('msgid_id', type="integer"), # l10n_messages.id
         Column('fname'),
         Column('lineno', type="integer"),
+        Column('href'),
         Index(['msgid_id', 'fname','lineno'])
     ],
     Table('l10n_translations', key='id')[
