@@ -1,3 +1,5 @@
+.narrow_content { padding-left: 10px; padding-right: 10px; }
+
 table.side_heads th {
   text-align: right;
   font-weight: bold;
@@ -9,7 +11,6 @@ p.help tt { font-weight: bold; }
 input.loading {
   background: url("../../common/loading.gif") right center no-repeat;
 }
-
 
 .translations h2 {
   text-align: center;
@@ -29,3 +30,20 @@ table.listing td.stats {
 
 ul.legend { list-style-type: none; padding-left: 0;}
 
+#filter {
+  float: right;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  top: -25px;
+}
+
+table.translations { width: 100%; }
+span.string { background-color: #dedede; }
+table.translations th, .right {
+  white-space: nowrap;
+  width: 10%;
+  font-weight: bold;
+  text-align: right;
+  padding-right: 5px;
+}

@@ -9,6 +9,16 @@
   </head>
   <body>
     <div id="content" class="translations">
+      <div id="filter">
+        <form action="" method="post">
+          <fieldset>
+            <legend>Filter Messages</legend>
+            <input type="checkbox" name="show_translated" value="on"
+                   checked="${show_translated and 'checked' or None}">Show translated</input>
+            <input type="submit" value="Update"/>
+          </fieldset>
+        </form>
+      </div>
       <h1>Messages for locale ${ catalog.locale or 'Unknown' }</h1>
       <py:if test="messages">
         <h2>
@@ -16,6 +26,74 @@
         </h2>
         <xi:include py:with="paginator = messages" href="page_index.html" />
       </py:if>
+
+      <py:for each="msg in messages">
+      <fieldset>
+        <table class="translations"
+               py:with="translations=msg.translations(catalog.id)">
+          <tr>
+            <td class="right">English:</td>
+            <td><span class="string">$msg.msgid</span></td>
+          </tr>
+          <tr py:with="locations=msg.locations">
+            <td class="right">Location(s):</td>
+            <td><py:for each="loc in locations">
+                <a href="$loc.href">$loc.fname:$loc.lineno</a>&nbsp;
+              </py:for>
+            </td>
+          </tr>
+          <tr py:for="translation in translations">
+            <td class="right">Translation(s):</td>
+            <td>
+              <table class="listing">
+                <thead>
+                  <tr>
+                    <th>Translation</th>
+                    <th>SID</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr py:for="trans in msg.translations(catalog.id)">
+                    <td><span class="string">$trans.string</span></td>
+                    <td>$trans.sid</td>
+                    <td>${format_datetime(trans.ts)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="right">&nbsp;</td>
+            <td>
+              <py:for each="trans in translations">
+              <fieldset>
+                <table class="translations">
+                  <tr>
+                    <td class="right">Translation:</td>
+                    <td><span class="string">$trans.string</span></td>
+                  </tr>
+                  <tr>
+                    <td class="right">SID</td>
+                    <td>$trans.sid</td>
+                  </tr>
+                  <tr>
+                    <th>Timestamp</th>
+                    <td>${format_datetime(trans.ts)}</td>
+                  </tr>
+                </table>
+              </fieldset>
+              </py:for>
+            </td>
+          </tr>
+          <tr>
+            <td class="right">New Translation:</td>
+            <td><input type="text" name="translation" size="40"/></td>
+          </tr>
+        </table>
+      </fieldset>
+      </py:for>
+
       <table class="listing">
         <tbody py:for="msg in messages">
           <tr>

@@ -72,7 +72,7 @@
           <tr py:for="locale in locales">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
             <td><a href="${req.href.browser(locale.template)}">$locale.template</a></td>
-            <td>$locale.locale</td>
+            <td><a href="${req.href.translations(locale.id)}">$locale.locale</a></td>
             <td><a href="${req.href.browser(locale.fpath)}">$locale.fpath</a></td>
             <td>
               <a href="${req.href.browser(locale.fpath, rev=locale.revision)}"

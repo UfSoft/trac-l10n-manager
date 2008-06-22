@@ -239,6 +239,8 @@ class LocaleCatalog(object):
 
         db = self.env.get_db_cnx()
         cursor = db.cursor()
+        cursor.execute("DELETE FROM l10n_locale_stats WHERE locale_id=%s",
+                       (self.id,))
         cursor.execute("DELETE FROM l10n_locales WHERE id=%s", (self.id,))
         db.commit()
 
@@ -433,6 +435,7 @@ class Translation(object):
     uc = ''
     ts = None
     sid = None
+    status = 'waiting'
 
     def __init__(self, env, locale_id, msgid_id, string='', idx=0, sid=''):
         assert locale_id is not None
@@ -450,12 +453,12 @@ class Translation(object):
         #print 'refreshing translation -> locale_id: %s  msgid_id: %s' % (self.locale_id, self.msgid_id)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT string, flags, uc, sid, ts FROM "
+        cursor.execute("SELECT string, flags, uc, sid, status, ts FROM "
                        "l10n_translations WHERE locale_id=%s AND msgid_id=%s "
                        "AND idx=%s", (self.locale_id, self.msgid_id, self.idx))
         row = cursor.fetchone()
         if row:
-            self.string, self.flags, self.uc, self.sid, self.ts = row
+            self.string, self.flags, self.uc, self.sid, self.status, self.ts = row
             self.flags = self.flags.split(',')
             self.uc = self.uc.split('\n')
             return True
@@ -471,18 +474,19 @@ class Translation(object):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
         cursor.execute("UPDATE l10n_translations SET idx=%s, string=%s, "
-                       "flags=%s, uc=%s, sid=%s, ts=%s WHERE "
+                       "flags=%s, uc=%s, sid=%s, status=%s, ts=%s WHERE "
                        "locale_id=%s AND msgid_id=%s",
                        (self.idx, self.string, ','.join(self.flags), '\n'.join(self.uc),
-                        self.sid, int(time.time()), self.locale_id,
+                        self.sid, self.status, int(time.time()), self.locale_id,
                         self.msgid_id))
         if not cursor.rowcount:
             cursor.execute("INSERT INTO l10n_translations (locale_id, msgid_id,"
-                           " idx, string, flags, uc, sid, ts) VALUES (%s, %s, "
-                           "%s, %s, %s, %s, %s, %s)",
+                           " idx, string, flags, uc, sid, status, ts) VALUES ("
+                           "%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (self.locale_id, self.msgid_id, self.idx,
                             self.string, ','.join(self.flags),
-                            '\n'.join(self.uc), self.sid, int(time.time())))
+                            '\n'.join(self.uc), self.sid, self.status,
+                            int(time.time())))
         db.commit()
         self.refresh()
 

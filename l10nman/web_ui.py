@@ -100,18 +100,32 @@ class L10nModule(Component):
 
 
     def render_locale(self, req, locale_id, page=1):
+        show_translated = req.args.get('show_translated') == 'on'
+        if req.method == 'POST':
+            url = "/%s/%s" % (locale_id, page)
+            if show_translated:
+                req.redirect(req.href.translations(url, show_translated='on'))
+            req.redirect(req.href.translations(url))
+
         data = {}
+        data['show_translated'] = show_translated
         if locale_id:
             page = int(page or 1)
             locale = LocaleCatalog.get_by_id(self.env, locale_id)
             data['catalog'] = locale
-            paginator = Paginator(locale.messages, page-1, 5)
+            if show_translated:
+                paginator = Paginator(locale.messages, page-1, 5)
+            else:
+                paginator = Paginator(locale.untranslated, page-1, 5)
             data['messages'] = paginator
             shown_pages = paginator.get_shown_pages(17)
             pagedata = []
             for show_page in shown_pages:
-                page_href = req.href.translations("/%s/%s" % (locale_id,
-                                                              show_page))
+                url = "/%s/%s" % (locale_id, show_page)
+                if show_translated:
+                    page_href = req.href.translations(url, show_translated='on')
+                else:
+                    page_href = req.href.translations(url, show_translated=None)
                 pagedata.append([page_href, None, str(show_page),
                                  'page %s' % show_page])
             fields = ['href', 'class', 'string', 'title']

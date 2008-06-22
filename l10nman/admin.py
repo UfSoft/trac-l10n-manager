@@ -220,6 +220,7 @@ class L10NAdminModule(Component):
                                 string, idx, req.authname)
                 t.flags = msg.flags
                 t.uc = msg.user_comments
+                t.status = 'reviewed'
                 t.save()
         self.log.debug("Updating catalog statistics")
         locale_catalog.update_stats()

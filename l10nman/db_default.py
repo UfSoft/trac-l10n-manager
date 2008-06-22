@@ -72,6 +72,7 @@ tables = [
         Column('uc'), # user-comments
         Column('sid'),
         Column('ts', type="integer"), # TimeStamp
+        Column('status'), # ENUM: waiting,  reviewed, rejected, etc
         Index(['locale_id', 'msgid_id', 'string', 'idx'])
     ]
 ]
