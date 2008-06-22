@@ -16,10 +16,9 @@
       jQuery(document).ready(function($) {
         $("#repobase").suggest("", "repobase");
         $("#fpath").suggest();
-        console.log($(".listing").width());
-        $("#new_catalog").width($(".listing").width());
       });
     </script>
+    <link type="text/css" href="${req.href.chrome('l10nman/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
     <h2>Manage Catalogs</h2>
@@ -49,20 +48,20 @@
       <table class="listing">
         <thead>
           <tr>
-            <th>&nbsp;</th>
+            <th class="sel">&nbsp;</th>
             <th>File Path</th>
             <th>Revision</th>
           </tr>
         </thead>
         <tbody>
-          <tr py:for="locale in catalogs">
-            <td><input type="checkbox" value="$locale.id" name="sel"/></td>
-            <td><a href="${req.href.browser(locale.fpath)}">$locale.fpath</a></td>
+          <tr py:for="template in catalogs">
+            <td><input type="checkbox" value="$template.fpath" name="sel"/></td>
+            <td><a href="${req.href.browser(template.fpath)}">$template.fpath</a></td>
             <td>
-              <a href="${req.href.browser(locale.fpath, rev=locale.revision)}"
+              <a href="${req.href.browser(template.fpath, rev=template.revision)}"
                  title="File youngest revision on repository">
-                $locale.revision</a>
-                (<a href="${req.href.browser(locale.fpath)}"
+                $template.revision</a>
+                (<a href="${req.href.browser(template.fpath)}"
                    title="Repository youngest revision">${youngest_rev}</a>)
             </td>
           </tr>

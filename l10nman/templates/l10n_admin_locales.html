@@ -14,11 +14,11 @@
     <title>L10N Manager - Manage Catalogs</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
-        $("#new_catalog").width($(".listing").width());
         $("#catalog").suggest();
         $("#locale").suggest("", "locale");
       });
     </script>
+    <link type="text/css" href="${req.href.chrome('l10nman/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
     <h2>Manage Catalogs</h2>
@@ -36,7 +36,7 @@
             <td>
               <select name="catalog_template">
                 <option py:for="catalog in catalog_templates"
-                        value="$catalog.id">$catalog.fpath</option>
+                        value="$catalog.fpath">$catalog.fpath</option>
               </select>
             </td>
           </tr>
@@ -48,19 +48,6 @@
             <th><label for="catalog">Catalog Path:</label></th>
             <td><input type="text" id="catalog" name="catalog" size="40"
                        value="${defined('catalog') and catalog or '/'}"/></td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <p class="help"><em>Repository Path</em> is going to be used
-                in relative <tt>URL</tt>'s.</p>
-              <p class="help">Usually a subversion repository is splited into
-              <tt>trunk</tt>, <tt>branches</tt> and <tt>tags</tt>.</p>
-              <p class="help">So, as an example, for a <em>Catalog Path</em>
-                equal to <tt>/trunk/mypackage/i18n/mypackage.pot</tt>, the
-                <em>Repository Path</em> would be <tt>/trunk</tt>, if, in the
-                catalog template, location lines are similiar to
-                <tt>mypackage/main.py:55</tt>.</p>
-            </td>
           </tr>
         </table>
         <div class="buttons">
@@ -74,16 +61,18 @@
       <table class="listing">
         <thead>
           <tr>
-            <th>&nbsp;</th>
-            <th>Repository Base</th>
-            <th>File Path</th>
+            <th class="sel">&nbsp;</th>
+            <th>Catalog Template</th>
+            <th>Locale</th>
+            <th>Catalog Path</th>
             <th>Revision</th>
           </tr>
         </thead>
         <tbody>
           <tr py:for="locale in locales">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
-            <td><a href="${req.href.browser(locale.repobase)}">$locale.repobase</a></td>
+            <td><a href="${req.href.browser(locale.template)}">$locale.template</a></td>
+            <td>$locale.locale</td>
             <td><a href="${req.href.browser(locale.fpath)}">$locale.fpath</a></td>
             <td>
               <a href="${req.href.browser(locale.fpath, rev=locale.revision)}"

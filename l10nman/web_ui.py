@@ -31,6 +31,7 @@ from trac.versioncontrol.web_ui.util import *
 from babel.messages.pofile import read_po
 
 from l10nman.model import *
+from l10nman.utils import AVAILABLE_LOCALES
 
 
 class L10nModule(Component):
@@ -63,32 +64,67 @@ class L10nModule(Component):
     def process_request(self, req):
         add_stylesheet(req, 'l10nman/css/l10n_style.css')
         match = re.match(r'^/translations/([0-9]+)?(?:/([0-9]+)?)?', req.path_info)
-        id, page = None, None
+        locale_id, page = None, None
         data = {}
         if match:
-            id, page = match.groups()
+            locale_id, page = match.groups()
+        if locale_id:
+            return self.render_locale(req, locale_id, page)
 
-        if id:
+        catalogs = LocaleCatalog.get_all(self.env)
+
+        data = {}
+        locales_data = []
+
+        for catalog in catalogs:
+            locale, english_name, display_name = AVAILABLE_LOCALES[catalog.locale]
+
+            translated, translated_percent, fuzzy, fuzzy_percent, \
+            untranslated, untranslated_percent = catalog.stats
+
+            locales_data.append({
+                'catalog': catalog,
+                'locale': locale,
+                'english_name': english_name,
+                'display_name': display_name,
+                'fuzzy': fuzzy,
+                'fuzzy_percent': fuzzy_percent,
+                'translated': translated,
+                'translated_percent': translated_percent,
+                'untranslated': untranslated,
+                'untranslated_percent': untranslated_percent
+            })
+        data['locales'] = locales_data
+
+        return 'l10n_locales_list.html', data, None
+
+
+    def render_locale(self, req, locale_id, page=1):
+        data = {}
+        if locale_id:
             page = int(page or 1)
-            catalog = Catalog.get_by_id(self.env, id)
-            data['catalog'] = catalog
-            paginator = Paginator(catalog.messages, page-1, 5)
+            locale = LocaleCatalog.get_by_id(self.env, locale_id)
+            data['catalog'] = locale
+            paginator = Paginator(locale.messages, page-1, 5)
             data['messages'] = paginator
             shown_pages = paginator.get_shown_pages(17)
             pagedata = []
             for show_page in shown_pages:
-                page_href = req.href.translations("/%s/%s" % (id, show_page))
-                pagedata.append([page_href, None, str(show_page), 'page %s' % show_page])
+                page_href = req.href.translations("/%s/%s" % (locale_id,
+                                                              show_page))
+                pagedata.append([page_href, None, str(show_page),
+                                 'page %s' % show_page])
             fields = ['href', 'class', 'string', 'title']
             paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
             paginator.current_page = {'href': None, 'class': 'current',
-                                    'string': str(paginator.page + 1),
-                                    'title':None}
+                                      'string': str(paginator.page + 1),
+                                      'title':None}
             if paginator.has_next_page:
-                next_href = req.href.translations("/%s/%s" % (id, page+1))
+                next_href = req.href.translations("/%s/%s" % (locale_id,
+                                                              page+1))
                 add_link(req, 'next', next_href, _('Next Page'))
             if paginator.has_previous_page:
-                prev_href = req.href.translations("/%s/%s" % (id, page-1))
+                prev_href = req.href.translations("/%s/%s" % (locale_id,
+                                                              page-1))
                 add_link(req, 'prev', prev_href, _('Previous Page'))
-#        data['page_href'] = req.href.translations()
         return 'l10n_messages.html', data, None

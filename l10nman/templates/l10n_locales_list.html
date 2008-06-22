@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="layout.html" />
+  <head>
+    <title>Available Locales</title>
+  </head>
+  <body>
+    <table class="listing">
+      <thead>
+        <tr>
+          <th>Locale</th>
+          <th>Display Name</th>
+          <th>English Name</th>
+          <th>Status</th>
+          <th>Translated</th>
+          <th>Fuzzy</th>
+          <th>Untranslated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr py:for="locale in locales">
+          <td><a href="${req.href.translations(locale.catalog.id)}">$locale.locale</a></td>
+          <td>$locale.display_name</td>
+          <td>$locale.english_name</td>
+          <td class="stats">
+          <span><img
+            height="10" width="${locale.translated_percent+20}"
+            src="${req.href.chrome('l10nman/img/green.png')}"
+            alt="${'%d' % locale.translated} translated messages"
+            title="${'%d' % locale.translated} translated messages"/><img
+            height="10" width="${locale.fuzzy_percent+20}"
+            src="${req.href.chrome('l10nman/img/yellow.png')}"
+            alt="${'%d' % locale.fuzzy} fuzzy messages"
+            title="${'%d' % locale.fuzzy} fuzzy messages"/><img
+            height="10" width="${locale.untranslated_percent+20}"
+            src="${req.href.chrome('l10nman/img/red.png')}"
+            alt="${'%d' % locale.untranslated} untranslated messages"
+            title="${'%d' % locale.untranslated} untranslated messages"/></span>
+          </td>
+          <td>$locale.translated</td>
+          <td>$locale.fuzzy</td>
+          <td>$locale.untranslated</td>
+        </tr>
+      </tbody>
+    </table>
+    <ul class="legend">
+      <li><img height="10" width="25" src="${req.href.chrome('l10nman/img/green.png')}"/> - Translated Messages</li>
+      <li><img height="10" width="25" src="${req.href.chrome('l10nman/img/yellow.png')}"/> - Fuzzy Messages</li>
+      <li><img height="10" width="25" src="${req.href.chrome('l10nman/img/red.png')}"/> - Untranslated Messages</li>
+    </ul>
+  </body>
+</html>

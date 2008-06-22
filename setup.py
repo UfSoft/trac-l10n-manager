@@ -33,7 +33,9 @@ setup(name=l10nman.__package__,
       package_data={
           'l10nman': [
               'templates/*.html',
-              'htdocs/*.css',
+              'htdocs/css/*.css',
+              'htdocs/img/*.png',
+              'htdocs/js/*.js',
           ]
       },
       entry_points = {

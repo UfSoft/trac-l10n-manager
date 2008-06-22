@@ -18,3 +18,14 @@ input.loading {
   margin:2em 0pt 0pt;
   padding:0pt 0.33em;
 }
+
+table.listing { width: 100%; }
+table.listing td { vertical-align: middle; }
+table.listing td.stats {
+  text-align: center;
+  white-space: nowrap;
+  width: 165px;
+}
+
+ul.legend { list-style-type: none; padding-left: 0;}
+

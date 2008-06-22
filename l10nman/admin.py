@@ -52,15 +52,12 @@ class L10NAdminModule(Component):
 
     def render_admin_panel(self, req, cat, page, path_info):
         add_script(req, 'l10nman/js/autocomplete.js')
-        add_stylesheet(req, 'l10nman/css/l10n_style.css')
 
         if req.get_header('X-Requested-With'):
             # AJAX request
             print 'AJAX', req.args
             if req.args.get('locale'):
                 self._return_locales_list(req)
-            elif req.args.get('repobase'):
-                self._return_repo_paths_list(req, dirs_only=True)
             else:
                 self._return_repo_paths_list(req)
 
@@ -79,10 +76,78 @@ class L10NAdminModule(Component):
             elif req.args.get('add_catalog'):
                 data.update(self._add_catalog(req))
 
-        catalogs = Catalog.get_all(self.env, locale='')
+        catalogs = CatalogTemplate.get_all(self.env)
         data['catalogs'] = catalogs
-        data['youngest_rev'] = self.env.get_repository(req.authname).youngest_rev
+        repos = self.env.get_repository(req.authname)
+        data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_catalogs.html', data
+
+    def _delete_catalogs(self, req):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        selected = req.args.getlist('sel')
+        for sel in selected:
+            catalog = CatalogTemplate(self.env, sel)
+            if catalog:
+                catalog.delete()
+                add_notice(req, "Catalog(s) deleted.")
+        return {}
+
+    def _add_catalog(self, req):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        data = {}
+        errors = []
+        fpath = req.args.get('fpath')
+        def add_error(error):
+            errors.append(error)
+            data['error'] = tag.ul(*[tag.li(e) for e in errors])
+            data['fpath'] = fpath
+            return data
+
+        if not fpath or fpath == '/':
+            add_error("You must define the catalog path")
+
+        repos = self.env.get_repository(req.authname)
+        revision = repos.youngest_rev
+        try:
+            node = get_existing_node(req, repos, fpath, revision)
+        except NoSuchChangeset, e:
+            raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
+
+
+        template = CatalogTemplate(self.env, fpath) #, node.rev)
+        if template.revision:
+            add_error("Catalog already exists")
+        else:
+            template.revision = repos.short_rev(node.rev)
+            template.save()
+
+        messages = list(read_po(StringIO(node.get_content().read())))
+        for msg in messages[1:]:
+            if msg.pluralizable:
+                m = Message(self.env, template.fpath, msg.id[0])
+                m.plural = msg.id[1]
+            else:
+                m = Message(self.env, template.fpath, msg.id)
+            m.msgstr = msg.string
+            m.flags = msg.flags
+            m.ac = msg.auto_comments
+#            m.uc = msg.user_comments
+            m.previous_id = msg.previous_id
+            m.lineno = msg.lineno
+            m.save()
+            try:
+                m.context = msg.context
+            except AttributeError:
+                pass
+            for fname,lineno in msg.locations:
+                location = Location(self.env, m.id, fname, lineno)
+                location.href = self._get_location_href(req, fpath,
+                                                        fname, lineno)
+                location.save()
+        add_notice(req, "Catalog added.")
+        return data
 
     def handle_locales(self, req):
         db = self.env.get_db_cnx()
@@ -94,25 +159,99 @@ class L10NAdminModule(Component):
             elif req.args.get('add_locale'):
                 data.update(self._add_locale(req))
 
-        catalogs = Catalog.get_all(self.env, locale='')
-        data['catalog_templates'] = catalogs
-        locales = Catalog.get_all(self.env, no_empty_locale=True)
+        templates = CatalogTemplate.get_all(self.env)
+        data['catalog_templates'] = templates
+        locales = LocaleCatalog.get_all(self.env)
         data['locales'] = locales
-        data['youngest_rev'] = self.env.get_repository(req.authname).youngest_rev
+        repos = self.env.get_repository(req.authname)
+        data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_locales.html', data
 
-    def _return_repo_paths_list(self, req, dirs_only=False):
-        if dirs_only:
-            repopath = req.args.get('repobase', '/')
-        else:
-            repopath = req.args.get('q', '/')
 
+    def _add_locale(self, req):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        data = {}
+        errors = []
+        catalog_template = req.args.get('catalog_template', None)
+        locale = req.args.get('locale')
+        locale_catalog_path = req.args.get('catalog')
+        def add_error(error):
+            errors.append(error)
+            data['error'] = tag.ul(*[tag.li(e) for e in errors])
+            data['locale'] = locale
+            data['catalog'] = locale_catalog_path
+            return data
+
+        if not catalog_template:
+            return add_error("You must first create a catalog template")
+        catalog_template = CatalogTemplate(self.env, catalog_template)
+        if not locale:
+            return add_error("You must define the new catalog's locale")
+
+        if locale_catalog_path:
+            repos = self.env.get_repository(req.authname)
+            revision = repos.youngest_rev
+            try:
+                node = get_existing_node(req, repos, locale_catalog_path, revision)
+            except NoSuchChangeset, e:
+                raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
+
+        locale_catalog = LocaleCatalog(self.env, locale, locale_catalog_path,
+                                       repos.short_rev(node.rev),
+                                       catalog_template.fpath)
+        if locale_catalog.id:
+            return add_error("Catalog already exists")
+        locale_catalog.save()
+
+        messages = list(read_po(StringIO(node.get_content().read())))
+        for msg in messages[1:]:
+            if isinstance(msg.string, basestring):
+                msgid = msg.id
+                msgstrs = [msg.string]
+            else:
+                msgid = msg.id[0]
+                msgstrs = msg.string
+
+            m = Message(self.env, catalog_template.fpath, msgid)
+            for idx, string in enumerate(msgstrs):
+                print idx, string, m.__dict__
+                t = Translation(self.env, locale_catalog.id, m.id,
+                                string, idx, req.authname)
+                t.flags = msg.flags
+                t.uc = msg.user_comments
+                t.save()
+        self.log.debug("Updating catalog statistics")
+        locale_catalog.update_stats()
+
+        add_notice(req, "Locale added.")
+        return data
+
+    def _delete_locale(self, req):
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        selected = req.args.getlist('sel')
+        print 987, selected
+        for id in selected:
+            catalog = LocaleCatalog.get_by_id(self.env, id)
+            if catalog:
+                catalog.delete()
+
+        add_notice(req, "Catalog(s) deleted.")
+
+        return {}
+
+    def _return_repo_paths_list(self, req):
+        repopath = req.args.get('q')
+        if not repopath.startswith('/'):
+            repopath = '/%s' % repopath
+        fallback = posixpath.dirname(repopath)
         repos = self.env.get_repository(req.authname)
 
         try:
-            node = get_existing_node(req, repos, repopath, repos.youngest_rev)
-        except NoSuchChangeset, e:
-            raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
+            node = repos.get_node(repopath, repos.youngest_rev)
+        except TracError:
+            node = repos.get_node(fallback, repos.youngest_rev)
 
         entries = []
         node_entries = list(node.get_entries())
@@ -122,12 +261,8 @@ class L10NAdminModule(Component):
             path = entry.path
             if not path.startswith('/'):
                 path = '/%s' % path
-            if entry.kind == 'dir':
-                path = tag.em(path)
-            if entry.kind == 'dir':
-                req.write(tag.li(path))
-            elif not dirs_only:
-                req.write(tag.li(path))
+            if path.startswith(repopath):
+                req.write(tag.li(tag.b(repopath), tag(path.split(repopath)[1])))
         req.write('</ul>')
         raise RequestDone
 
@@ -147,143 +282,8 @@ class L10NAdminModule(Component):
         req.write('</ul>')
         raise RequestDone
 
-    def _delete_catalogs(self, req):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        selected = req.args.getlist('sel')
-        for sel in selected:
-            catalog = Catalog.get_by_id(self.env, sel)
-            if catalog:
-                catalog.delete()
-                add_notice(req, "Catalog(s) deleted.")
-        return {}
 
-    def _add_catalog(self, req):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        data = {}
-        errors = []
-        fpath = req.args.get('fpath')
-        def add_error(error):
-            errors.append()
-            data['error'] = tag.ul(*[tag.li(e) for e in errors])
-            data['fpath'] = fpath
-            return data
 
-        if not fpath or fpath == '/':
-            add_error("You must define the catalog path")
-
-        repos = self.env.get_repository(req.authname)
-        revision = repos.youngest_rev
-        try:
-            node = get_existing_node(req, repos, fpath, revision)
-        except NoSuchChangeset, e:
-            raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
-
-        locale = req.args.get('locale', '')
-        catalog = Catalog(self.env, locale, fpath, node.rev)
-        if catalog.id:
-            add_error("Catalog already exists")
-        else:
-            catalog.save()
-
-        messages = list(read_po(StringIO(node.get_content().read())))
-        for msg in messages[1:]:
-            if msg.pluralizable:
-                m = Message(self.env, catalog.id, msg.id[0])
-                m.plural = msg.id[1]
-            else:
-                m = Message(self.env, catalog.id, msg.id)
-            m.msgstr = msg.string
-            m.flags = msg.flags
-            m.ac = msg.auto_comments
-            m.uc = msg.user_comments
-            m.previous_id = msg.previous_id
-            m.lineno = msg.lineno
-            m.save()
-            try:
-                m.context = msg.context
-            except AttributeError:
-                pass
-            for fname,lineno in msg.locations:
-                location = Location(self.env, m.id, fname, lineno)
-                location.href = self._get_location_href(req, fpath, fname, lineno)
-                location.save()
-        add_notice(req, "Catalog added.")
-        return data
-
-    def _add_locale(self, req):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        data = {}
-        errors = []
-        template_id = req.args.get('catalog_template', None)
-        if not template_id:
-            errors.append("You must first create a catalog template")
-        catalog_template = Catalog.get_by_id(self.env, req.args.get('catalog_template'))
-        locale = req.args.get('locale')
-        if not locale:
-            errors.append("You must define the new catalog's locale")
-
-        catalog_path = req.args.get('catalog')
-        if catalog_path:
-            repos = self.env.get_repository(req.authname)
-            revision = repos.youngest_rev
-            try:
-                node = get_existing_node(req, repos, catalog_path, revision)
-            except NoSuchChangeset, e:
-                raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
-
-        catalog = Catalog(self.env, locale, catalog_template.repobase,
-                          catalog_path, node.rev)
-        if catalog.id:
-            errors.append("Catalog already exists")
-        else:
-            catalog.save()
-
-        messages = list(read_po(StringIO(node.get_content().read())))
-        for msg in messages[1:]:
-            m = Message(self.env, catalog.id, msg.id)
-            m.msgstr = msg.string
-            m.flags = msg.flags
-            m.ac = msg.auto_comments
-            m.uc = msg.user_comments
-            m.previous_id = msg.previous_id
-            m.lineno = msg.lineno
-            m.save()
-            try:
-                m.context = msg.context
-            except AttributeError:
-                pass
-            for fname,lineno in msg.locations:
-                location = Location(self.env, m.id, fname, lineno)
-                location.save()
-
-        if errors:
-            data['error'] = tag.ul(*[tag.li(e) for e in errors])
-            data['repobase'] = repobase
-            data['fpath'] = fpath
-        add_notice(req, "Catalog added.")
-        return data
-
-    def _delete_locale(self, req):
-        db = self.env.get_db_cnx()
-        cursor = db.cursor()
-        selected = req.args.getlist('sel')
-        print 987, selected
-        for id in selected:
-            catalog = Catalog.get_by_id(self.env, id)
-#            cursor.execute("SELECT locale, repobase, fpath, revision "
-#                           "FROM l10n_catalogs WHERE id=%s", (sel,))
-#            row = cursor.fetchone()
-#            if row:
-#                catalog = Catalog(self.env, *row)
-            if catalog:
-                catalog.delete()
-
-        add_notice(req, "Catalog(s) deleted.")
-
-        return {}
 
     def _get_location_href(self, req, catalog_path, fname, lineno):
         catalog_path_parts = catalog_path.replace('\\', '/').split('/')
@@ -303,7 +303,6 @@ class L10NAdminModule(Component):
                 except TracError:
                     self.hrefs_cache[fname] = False
         if self.hrefs_cache.get(fname) is not False:
-            print href(self.hrefs_cache.get(fname)) + "#L%d" % lineno
             return href(self.hrefs_cache.get(fname)) + "#L%d" % lineno
         else:
             return ''
