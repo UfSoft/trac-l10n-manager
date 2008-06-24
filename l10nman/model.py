@@ -217,9 +217,8 @@ class LocaleCatalog(object):
     def untranslated(self):
         untranslated = []
         for message in self.messages:
-            for translation in message.translations(self.id):
-                if not translation.string:
-                    untranslated.append(message)
+            if not message.translations(self.id):
+                untranslated.append(message)
         return untranslated
 
     @property
@@ -260,7 +259,7 @@ class LocaleCatalog(object):
         db = env.get_db_cnx()
         cursor = db.cursor()
         cursor.execute("SELECT locale, fpath, revision, template FROM "
-                       "l10n_locales")
+                       "l10n_locales ORDER BY locale")
         catalogs = []
         for locale, fpath, revision, template in cursor:
             catalogs.append(LocaleCatalog(env, locale, fpath, revision,

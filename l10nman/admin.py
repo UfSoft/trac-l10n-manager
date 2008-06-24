@@ -26,7 +26,7 @@ from trac.web.chrome import add_script, add_stylesheet
 
 from trac.resource import ResourceNotFound
 from trac.util.translation import _
-from trac.versioncontrol import NoSuchChangeset
+from trac.versioncontrol import NoSuchChangeset, NoSuchNode
 from trac.versioncontrol.web_ui.util import get_existing_node
 from trac.web.main import RequestDone
 from trac.web.chrome import add_warning, add_notice
@@ -197,6 +197,9 @@ class L10NAdminModule(Component):
             except NoSuchChangeset, e:
                 raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
+        if not node.kind == 'file':
+            raise TracError('Unknown Catalog')
+
         locale_catalog = LocaleCatalog(self.env, locale, locale_catalog_path,
                                        repos.short_rev(node.rev),
                                        catalog_template.fpath)
@@ -215,13 +218,13 @@ class L10NAdminModule(Component):
 
             m = Message(self.env, catalog_template.fpath, msgid)
             for idx, string in enumerate(msgstrs):
-                print idx, string, m.__dict__
-                t = Translation(self.env, locale_catalog.id, m.id,
-                                string, idx, req.authname)
-                t.flags = msg.flags
-                t.uc = msg.user_comments
-                t.status = 'reviewed'
-                t.save()
+                if string:
+                    t = Translation(self.env, locale_catalog.id, m.id,
+                                    string, idx, req.authname)
+                    t.flags = msg.flags
+                    t.uc = msg.user_comments
+                    t.status = 'reviewed'
+                    t.save()
         self.log.debug("Updating catalog statistics")
         locale_catalog.update_stats()
 
@@ -246,35 +249,68 @@ class L10NAdminModule(Component):
         repopath = req.args.get('q')
         if not repopath.startswith('/'):
             repopath = '/%s' % repopath
-        fallback = posixpath.dirname(repopath)
+
         repos = self.env.get_repository(req.authname)
 
-        try:
-            node = repos.get_node(repopath, repos.youngest_rev)
-        except TracError:
-            node = repos.get_node(fallback, repos.youngest_rev)
+        def get_node_entries(path):
+            # Should probably try to cache these searches,
+            # although only meant for admins
+            if not path.startswith('/'):
+                path = '/%s' % path
+            fallback = posixpath.dirname(path)
+            try:
+                node = repos.get_node(str(path), repos.youngest_rev)
+            except (TracError, NoSuchNode):
+                node = repos.get_node(fallback, repos.youngest_rev)
+            node_entries = list(node.get_entries())
+            entries = []
+            for entry in node_entries:
+                path = entry.path
+                if not path.startswith('/'):
+                    path = '/%s' % path
+                if path.startswith(repopath):
+                    # Only return those that we're interested in
+                    entries.append(entry)
+            entries.sort(key=attrgetter('path'))
+            return entries
 
-        entries = []
-        node_entries = list(node.get_entries())
-        node_entries.sort(key=attrgetter('path'))
+        entries = get_node_entries(repopath)
+
+        if not entries:
+            req.write(tag.center(tag.em("No matches found on repository for ",
+                                        tag.b(repopath))))
+            raise RequestDone
+
+        while len(entries) <= 1:
+            # If returning only one entry, return a file no matter how deep
+            if entries[0].kind == 'dir':
+                entries = get_node_entries(entries[0].path)
+            elif entries[0].kind == 'file':
+                break
+
         req.write('<ul>')
-        for entry in node_entries:
+        for entry in entries:
             path = entry.path
             if not path.startswith('/'):
                 path = '/%s' % path
-            if path.startswith(repopath):
-                req.write(tag.li(tag.b(repopath), tag(path.split(repopath)[1])))
+            req.write(tag.li(tag.b(repopath), tag(path.split(repopath)[1])))
         req.write('</ul>')
         raise RequestDone
 
     def _return_locales_list(self, req):
         query = req.args.get('locale')
         if not query:
+            req.write(tag.center(tag.em('No matches')))
             raise RequestDone
 
         matches = [AVAILABLE_LOCALES[l]
-                   for l in AVAILABLE_LOCALES.keys() if l.startswith(query)]
+                   for l in AVAILABLE_LOCALES.keys() if
+                   l.lower().startswith(query.lower())]
 
+        if not matches:
+            req.write(tag.center(tag.em("No matches found for locale ",
+                                        tag.b(query))))
+            raise RequestDone
         req.write('<ul>')
         for loc, eng_name, disp_name in matches:
             req.write(tag.li(tag.b(loc), tag.br,

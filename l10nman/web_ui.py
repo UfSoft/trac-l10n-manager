@@ -21,7 +21,7 @@ from genshi.builder import tag
 from trac.core import *
 from trac.web import IRequestHandler
 from trac.web.chrome import ITemplateProvider, INavigationContributor
-from trac.web.chrome import add_link, add_stylesheet
+from trac.web.chrome import add_link, add_stylesheet, add_script
 
 from trac.mimeview import *
 from trac.util.presentation import Paginator
@@ -63,6 +63,7 @@ class L10nModule(Component):
 
     def process_request(self, req):
         add_stylesheet(req, 'l10nman/css/l10n_style.css')
+        add_script(req, 'l10nman/js/dynamic.js')
         match = re.match(r'^/translations/([0-9]+)?(?:/([0-9]+)?)?', req.path_info)
         locale_id, page = None, None
         data = {}
@@ -79,8 +80,14 @@ class L10nModule(Component):
         for catalog in catalogs:
             locale, english_name, display_name = AVAILABLE_LOCALES[catalog.locale]
 
-            translated, translated_percent, fuzzy, fuzzy_percent, \
-            untranslated, untranslated_percent = catalog.stats
+
+            stats = catalog.stats
+            if stats:
+                translated, translated_percent, fuzzy, fuzzy_percent, \
+                untranslated, untranslated_percent = stats
+            else:
+                translated = translated_percent = fuzzy = fuzzy_percent = \
+                untranslated = untranslated_percent = 0
 
             locales_data.append({
                 'catalog': catalog,

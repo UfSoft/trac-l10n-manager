@@ -36,11 +36,11 @@ tables = [
     Table('l10n_locale_stats', key='locale_id')[
         Column('locale_id', type='integer'), # FK l10n_locales.id
         Column('translated', type='integer'),
-        Column('translated_percent', type='integer'),
+        Column('translated_percent', type='float'),
         Column('fuzzy', type='integer'),
-        Column('fuzzy_percent', type='integer'),
+        Column('fuzzy_percent', type='float'),
         Column('untranslated', type="integer"),
-        Column('untranslated_percent', type="integer")
+        Column('untranslated_percent', type="float")
     ],
     Table('l10n_messages', key='id')[
         Column('id', auto_increment=True),
