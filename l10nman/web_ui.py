@@ -56,21 +56,31 @@ class L10nModule(Component):
 
     # IRequestHandler methods
     def match_request(self, req):
-        match = re.match(r'^/translations(?:/(.*))?', req.path_info)
+        match = re.match(r'^/translat(e|ions)(?:/(.*))?', req.path_info)
         if match:
-            print 1234, match.groups()
             return True
+        return False
 
     def process_request(self, req):
         add_stylesheet(req, 'l10nman/css/l10n_style.css')
-        add_script(req, 'l10nman/js/dynamic.js')
-        match = re.match(r'^/translations/([0-9]+)?(?:/([0-9]+)?)?', req.path_info)
-        locale_id, page = None, None
-        data = {}
+        match = re.match(r'^/(translate|translations)'
+                         r'(?:/([0-9]+)?)?(?:/([0-9]+)?)?', req.path_info)
         if match:
-            locale_id, page = match.groups()
-        if locale_id:
-            return self.render_locale(req, locale_id, page)
+            subprocess = match.group(1)
+            if subprocess == 'translate':
+                msgid = match.group(2)
+                return self.process_translate_request(req, msgid)
+            elif subprocess == 'translations':
+                locale_id = match.group(2)
+                page = match.group(3) or 1
+                if locale_id:
+                    # Render specific locale
+                    return self.render_locale(req, locale_id, page)
+                # Render all locales
+                return self.process_locales_request(req, locale_id, page)
+
+    def process_locales_request(self, req, locale_id, page):
+        data = {}
 
         catalogs = LocaleCatalog.get_all(self.env)
 
@@ -78,8 +88,8 @@ class L10nModule(Component):
         locales_data = []
 
         for catalog in catalogs:
-            locale, english_name, display_name = AVAILABLE_LOCALES[catalog.locale]
-
+            locale, english_name, display_name = \
+                                            AVAILABLE_LOCALES[catalog.locale]
 
             stats = catalog.stats
             if stats:
@@ -107,45 +117,53 @@ class L10nModule(Component):
 
 
     def render_locale(self, req, locale_id, page=1):
-        show_translated = req.args.get('show_translated') == 'on'
+        add_script(req, 'l10nman/js/dynamic.js')
+        show_translated = req.args.get('show_translated', None)
+        if not page:
+            url = "/%s/1" % locale_id
+            req.redirect(req.href.translations(url,
+                                               show_translated=show_translated))
         if req.method == 'POST':
             url = "/%s/%s" % (locale_id, page)
-            if show_translated:
-                req.redirect(req.href.translations(url, show_translated='on'))
-            req.redirect(req.href.translations(url))
+            req.redirect(req.href.translations(url,
+                                               show_translated=show_translated))
 
         data = {}
         data['show_translated'] = show_translated
-        if locale_id:
-            page = int(page or 1)
-            locale = LocaleCatalog.get_by_id(self.env, locale_id)
-            data['catalog'] = locale
-            if show_translated:
-                paginator = Paginator(locale.messages, page-1, 5)
-            else:
-                paginator = Paginator(locale.untranslated, page-1, 5)
-            data['messages'] = paginator
-            shown_pages = paginator.get_shown_pages(17)
-            pagedata = []
-            for show_page in shown_pages:
-                url = "/%s/%s" % (locale_id, show_page)
-                if show_translated:
-                    page_href = req.href.translations(url, show_translated='on')
-                else:
-                    page_href = req.href.translations(url, show_translated=None)
-                pagedata.append([page_href, None, str(show_page),
-                                 'page %s' % show_page])
-            fields = ['href', 'class', 'string', 'title']
-            paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
-            paginator.current_page = {'href': None, 'class': 'current',
-                                      'string': str(paginator.page + 1),
-                                      'title':None}
-            if paginator.has_next_page:
-                next_href = req.href.translations("/%s/%s" % (locale_id,
-                                                              page+1))
-                add_link(req, 'next', next_href, _('Next Page'))
-            if paginator.has_previous_page:
-                prev_href = req.href.translations("/%s/%s" % (locale_id,
-                                                              page-1))
-                add_link(req, 'prev', prev_href, _('Previous Page'))
+        page = int(page or 1)
+        locale = LocaleCatalog.get_by_id(self.env, locale_id)
+        data['locale'], data['english_name'], data['display_name'] = \
+                                            AVAILABLE_LOCALES[locale.locale]
+        data['catalog'] = locale
+
+        messages = show_translated=='on' and locale.messages or \
+                                                            locale.untranslated
+
+        paginator = Paginator(messages, page-1, 5)
+        data['messages'] = paginator
+        shown_pages = paginator.get_shown_pages(30)
+        pagedata = []
+        for show_page in shown_pages:
+            url = "/%s/%s" % (locale_id, show_page)
+            page_href = req.href.translations(
+                                        url, show_translated=show_translated)
+            pagedata.append([page_href, None, str(show_page),
+                             'page %s' % show_page])
+        fields = ['href', 'class', 'string', 'title']
+        paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+        paginator.current_page = {'href': None, 'class': 'current',
+                                  'string': str(paginator.page + 1),
+                                  'title':None}
+        if paginator.has_next_page:
+            next_href = req.href.translations("/%s/%s" % (locale_id, page+1),
+                                              show_translated=show_translated)
+            add_link(req, 'next', next_href, _('Next Page'))
+        if paginator.has_previous_page:
+            prev_href = req.href.translations("/%s/%s" % (locale_id, page-1),
+                                              show_translated=show_translated)
+            add_link(req, 'prev', prev_href, _('Previous Page'))
         return 'l10n_messages.html', data, None
+
+
+    def process_translate_request(self, req, msgid):
+        pass

@@ -19,98 +19,101 @@
           <fieldset>
             <legend>Filter Messages</legend>
             <input type="checkbox" name="show_translated" value="on"
-                   checked="${show_translated and 'checked' or None}">Show translated</input>
+                   checked="${show_translated=='on' and 'checked' or None}">Show translated</input>
             <input type="submit" value="Update"/>
           </fieldset>
         </form>
       </div>
-      <h1>Messages for locale ${ catalog.locale or 'Unknown' }</h1>
+      <h1>Messages for $locale - $display_name - $english_name</h1>
       <py:if test="messages">
         <h2>
-          Translations <span class="numresults">(${messages.displayed_items()})</span>
+          Messages <span class="numresults">(${messages.displayed_items()})</span>
         </h2>
         <xi:include py:with="paginator = messages" href="page_index.html" />
       </py:if>
 
       <py:for each="msg in messages">
-      <fieldset>
-        <table class="translations"
-               py:with="translations=msg.translations(catalog.id)">
-          <tr>
-            <th>English:</th>
-            <td><span class="string">$msg.msgid</span></td>
-          </tr>
-          <tr py:with="locations=msg.locations">
-            <th>Location(s):</th>
-            <td><py:for each="loc in locations">
-                <a href="$loc.href">$loc.fname:$loc.lineno</a>&nbsp;
-              </py:for>
-            </td>
-          </tr>
-          <tr>
-            <th>&nbsp;</th>
-            <td>
-              <py:for each="trans in translations">
-              <fieldset>
-                <table class="translations">
-                  <tr>
-                    <th>Translation:</th>
-                    <td><span class="string">$trans.string</span></td>
-                  </tr>
-                  <tr>
-                    <th>SID</th>
-                    <td>$trans.sid</td>
-                  </tr>
-                  <tr>
-                    <th>Timestamp</th>
-                    <td>${format_datetime(trans.ts)}</td>
-                  </tr>
-                </table>
-              </fieldset>
-              </py:for>
-            </td>
-          </tr>
-          <tr>
-            <th>New Translation:</th>
-            <td><textarea cols="50" rows="2" class="more_lines" name="translation"/></td>
-          </tr>
-        </table>
-      </fieldset>
+      <form action="${req.href.translate(msg.id)}" method="post">
+        <fieldset>
+          <table class="translations"
+                 py:with="translations=msg.translations(catalog.id)">
+            <tr>
+              <th>English:</th>
+              <td><span class="string">$msg.msgid</span></td>
+            </tr>
+            <tr py:if="msg.plural">
+              <th>Plural Form:</th>
+              <td><span class="string">$msg.plural</span></td>
+            </tr>
+            <tr py:with="locations=msg.locations">
+              <th>${ngettext("Location:", "Locations:", len(locations))}</th>
+              <td><py:for each="loc in locations">
+                  <a href="$loc.href">$loc.fname:$loc.lineno</a><br/>
+                </py:for>
+              </td>
+            </tr>
+            <tr py:if="translations">
+              <th>${ngettext("Current Translation:", "Current Translations:", len(translations))}</th>
+              <td>
+                <py:for each="trans in translations">
+                <fieldset>
+                  <table class="translations">
+                  <py:choose test="">
+                  <py:when test="msg.plural">
+                    <tr>
+                      <th>Translation [0]:</th>
+                      <td><span class="string">$trans.string</span></td>
+                    </tr>
+                    <tr py:for="plural_form in trans.plurals" >
+                      <th>Translation [${plural_form.idx}]:</th>
+                      <td><span class="string">$plural_form.string</span></td>
+                    </tr>
+                  </py:when>
+                  <py:otherwise>
+                    <tr>
+                      <th>Translation:</th>
+                      <td><span class="string">$trans.string</span></td>
+                    </tr>
+                  </py:otherwise>
+                  </py:choose>
+                    <tr>
+                      <th>Author:</th>
+                      <td>$trans.sid</td>
+                    </tr>
+                    <tr>
+                      <th>Timestamp:</th>
+                      <td>${format_datetime(trans.ts)}</td>
+                    </tr>
+                  </table>
+                </fieldset>
+                </py:for>
+              </td>
+            </tr>
+            <tr>
+              <th>Comment For Translation:</th>
+              <td><textarea cols="50" rows="2" class="more_lines" name="comment"/></td>
+            </tr>
+            <py:choose test="">
+            <py:when test="msg.plural">
+            <tr py:for="idx in range(catalog.plurals)">
+              <th>New Translation For Index $idx:</th>
+              <td><textarea cols="50" rows="2" class="more_lines" name="translation"/></td>
+            </tr>
+            </py:when>
+            <py:otherwise>
+            <tr>
+              <th>New Translation:</th>
+              <td><textarea cols="50" rows="2" class="more_lines" name="translation"/></td>
+            </tr>
+            </py:otherwise>
+            </py:choose>
+          </table>
+          <div class="buttons">
+            <input type="submit" name="submit_translation" value="Submit Translation"/>
+          </div>
+        </fieldset>
+      </form>
       </py:for>
-
-      <table class="listing">
-        <tbody py:for="msg in messages">
-          <tr>
-            <th>MSGID</th>
-            <td>$msg.msgid</td>
-          </tr>
-          <tr py:if="msg.msgstr">
-            <th>MSGSTR</th>
-            <td>$msg.msgstr</td>
-          </tr>
-          <tr py:if="msg.flags is not [u'']">
-            <th>Flags</th>
-            <td>$msg.flags</td>
-          </tr>
-          <tr py:if="msg.ac">
-            <th>Auto-Comments</th>
-            <td>$msg.ac</td>
-          </tr>
-          <tr py:if="msg.uc">
-            <th>User-Comments</th>
-            <td>$msg.uc</td>
-          </tr>
-          <tr>
-            <th>Locations:</th>
-            <td>
-              <py:for each="loc in msg.locations">
-                <a href="$loc.href">$loc.fname:$loc.lineno</a><br/>
-              </py:for>
-            </td>
-          </tr>
-          <tr><td colspan="2">&nbsp;</td></tr>
-        </tbody>
-      </table>
       <xi:include py:with="paginator = messages" href="page_index.html" />
     </div>
   </body>

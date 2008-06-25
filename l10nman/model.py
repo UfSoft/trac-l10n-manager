@@ -361,13 +361,13 @@ class Message(object):
     def translations(self, locale_id):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT string, idx FROM l10n_translations WHERE "
-                       "locale_id=%s AND msgid_id=%s",
+        cursor.execute("SELECT string FROM l10n_translations WHERE "
+                       "locale_id=%s AND msgid_id=%s AND idx=0",
                        (locale_id, self.id))
 
         translations = []
-        for string, idx in cursor:
-            translation = Translation(self.env, locale_id, self.id, string, idx)
+        for string in cursor:
+            translation = Translation(self.env, locale_id, self.id, string, 0)
             translations.append(translation)
         return translations
 
@@ -467,17 +467,31 @@ class Translation(object):
         locale = LocaleCatalog.get_by_id(self.env, self.locale_id)
         locale.update_stats()
 
+    @property
+    def plurals(self):
+        plurals = []
+        db = self.env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("SELECT idx, string, flags, uc, sid, status, ts FROM "
+                       "l10n_translations WHERE locale_id=%s AND msgid_id=%s "
+                       "AND idx!=%s", (self.locale_id, self.msgid_id, self.idx))
+        for entry in cursor:
+            idx, string, flags, uc, sid, status, ts = entry
+            plurals.append(Translation(self.env, self.locale_id, self.msgid_id,
+                                       string, idx))
+        return plurals
+
     def save(self):
         assert self.locale_id is not None
         assert self.msgid_id is not None
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("UPDATE l10n_translations SET idx=%s, string=%s, "
+        cursor.execute("UPDATE l10n_translations SET string=%s, "
                        "flags=%s, uc=%s, sid=%s, status=%s, ts=%s WHERE "
-                       "locale_id=%s AND msgid_id=%s",
-                       (self.idx, self.string, ','.join(self.flags), '\n'.join(self.uc),
+                       "locale_id=%s AND msgid_id=%s AND idx=%s",
+                       (self.string, ','.join(self.flags), '\n'.join(self.uc),
                         self.sid, self.status, int(time.time()), self.locale_id,
-                        self.msgid_id))
+                        self.msgid_id, self.idx))
         if not cursor.rowcount:
             cursor.execute("INSERT INTO l10n_translations (locale_id, msgid_id,"
                            " idx, string, flags, uc, sid, status, ts) VALUES ("
