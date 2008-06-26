@@ -31,17 +31,30 @@ setup(name=l10nman.__package__,
       keywords = "trac plugin l10n",
       packages=find_packages(),
       package_data={
-          'l10nman': [
-              'templates/*.html',
-              'htdocs/css/*.css',
-              'htdocs/img/*.png',
-              'htdocs/js/*.js',
-          ]
+        'l10nman': [
+            'templates/*.html',
+            'htdocs/css/*.css',
+            'htdocs/img/*.png',
+            'htdocs/js/*.js',
+        ]
+      },
+      message_extractors = {
+        'l10nman': [
+            ('**.py', 'python', None),
+            ('**/templates/**.html', 'genshi', None),
+            ('public/**', 'ignore', None)
+        ]
       },
       entry_points = {
-          'trac.plugins': [
-              'l10nman = l10nman',
-          ]
+        'trac.plugins': [
+            'l10nman = l10nman',
+        ],
+        'distutils.commands': [
+            'extract = babel.messages.frontend:extract_messages',
+            'init = babel.messages.frontend:init_catalog',
+            'compile = babel.messages.frontend:compile_catalog',
+            'update = babel.messages.frontend:update_catalog'
+        ]
       },
       classifiers=[
           'Development Status :: 4 - Beta',
