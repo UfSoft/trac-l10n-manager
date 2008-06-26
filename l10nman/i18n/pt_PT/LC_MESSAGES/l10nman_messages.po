@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: L10nManagerTracPlugin 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2008-06-26 22:19+0100\n"
-"PO-Revision-Date: 2008-06-26 22:35+0100\n"
+"PO-Revision-Date: 2008-06-26 23:03+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: pt_PT <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -237,7 +237,8 @@ msgid "Translation [0]:"
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:73
-msgid "Translation []:"
+#, fuzzy, python-format
+msgid "Translation [%d]:"
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:79
@@ -257,7 +258,8 @@ msgid "Comment For Translation:"
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:104
-msgid "New Translation For Index :"
+#, python-format
+msgid "New Translation For Index %d:"
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:110
