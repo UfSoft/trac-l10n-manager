@@ -61,7 +61,7 @@ class CatalogTemplate(object):
                        (self.fpath,))
         locales = []
         for id in cursor:
-            locales.append(Catalog.get_by_id(self.env, id))
+            locales.append(LocaleCatalog.get_by_id(self.env, id[0]))
         return locales
 
     @property
@@ -290,7 +290,7 @@ class Message(object):
         if row:
             self.id, self.plural, self.flags, self.ac, \
                 self.previous_id, self.lineno, self.context = row
-            self.flags = self.flags.split(',')
+            self.flags = [f.strip() for f in self.flags.split(',') if f]
 
 
     def save(self):

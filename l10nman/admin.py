@@ -25,7 +25,7 @@ from trac.web.chrome import add_script, add_stylesheet
 
 
 from trac.resource import ResourceNotFound
-from trac.util.translation import _
+from trac.util.translation import _, ngettext
 from trac.versioncontrol import NoSuchChangeset, NoSuchNode
 from trac.versioncontrol.web_ui.util import get_existing_node
 from trac.web.main import RequestDone
@@ -90,7 +90,9 @@ class L10NAdminModule(Component):
             catalog = CatalogTemplate(self.env, sel)
             if catalog:
                 catalog.delete()
-                add_notice(req, "Catalog(s) deleted.")
+                #: Auto Extracted Example
+                add_notice(req, ngettext("Catalog deleted.",
+                                         "Catalogs deleted.", len(selected)))
         return {}
 
     def _add_catalog(self, req):
@@ -106,7 +108,7 @@ class L10NAdminModule(Component):
             return data
 
         if not fpath or fpath == '/':
-            add_error("You must define the catalog path")
+            add_error(_("You must define the catalog path"))
 
         repos = self.env.get_repository(req.authname)
         revision = repos.youngest_rev
@@ -118,7 +120,7 @@ class L10NAdminModule(Component):
 
         template = CatalogTemplate(self.env, fpath) #, node.rev)
         if template.revision:
-            add_error("Catalog already exists")
+            add_error(_("Catalog already exists"))
         else:
             template.revision = repos.short_rev(node.rev)
             template.save()
@@ -146,7 +148,7 @@ class L10NAdminModule(Component):
                 location.href = self._get_location_href(req, fpath,
                                                         fname, lineno)
                 location.save()
-        add_notice(req, "Catalog added.")
+        add_notice(req, _("Catalog added."))
         return data
 
     def handle_locales(self, req):
@@ -184,10 +186,11 @@ class L10NAdminModule(Component):
             return data
 
         if not catalog_template:
-            return add_error("You must first create a catalog template")
+            #: Translator Comments
+            return add_error(_("You must first create a catalog template"))
         catalog_template = CatalogTemplate(self.env, catalog_template)
         if not locale:
-            return add_error("You must define the new catalog's locale")
+            return add_error(_("You must define the new catalog's locale"))
 
         if locale_catalog_path:
             repos = self.env.get_repository(req.authname)
@@ -198,13 +201,13 @@ class L10NAdminModule(Component):
                 raise ResourceNotFound(e.message, _('Invalid Changeset Number'))
 
         if not node.kind == 'file':
-            raise TracError('Unknown Catalog')
+            raise TracError(_('Unknown Catalog'))
 
         locale_catalog = LocaleCatalog(self.env, locale, locale_catalog_path,
                                        repos.short_rev(node.rev),
                                        catalog_template.fpath)
         if locale_catalog.id:
-            return add_error("Catalog already exists")
+            return add_error(_("Catalog already exists"))
         locale_catalog.save()
 
         messages = list(read_po(StringIO(node.get_content().read())))
@@ -225,10 +228,10 @@ class L10NAdminModule(Component):
                     t.uc = msg.user_comments
                     t.status = 'reviewed'
                     t.save()
-        self.log.debug("Updating catalog statistics")
+        self.log.debug(_("Updating catalog statistics"))
         locale_catalog.update_stats()
 
-        add_notice(req, "Locale added.")
+        add_notice(req, _("Locale added."))
         return data
 
     def _delete_locale(self, req):
@@ -241,7 +244,8 @@ class L10NAdminModule(Component):
             if catalog:
                 catalog.delete()
 
-        add_notice(req, "Catalog(s) deleted.")
+        add_notice(req, ngettext("Locale deleted.", "Locales deleted.",
+                                 len(selected)))
 
         return {}
 
@@ -277,7 +281,7 @@ class L10NAdminModule(Component):
         entries = get_node_entries(repopath)
 
         if not entries:
-            req.write(tag.center(tag.em("No matches found on repository for ",
+            req.write(tag.center(tag.em(_("No matches found on repository for "),
                                         tag.b(repopath))))
             raise RequestDone
 
@@ -300,7 +304,7 @@ class L10NAdminModule(Component):
     def _return_locales_list(self, req):
         query = req.args.get('locale')
         if not query:
-            req.write(tag.center(tag.em('No matches')))
+            req.write(tag.center(tag.em(_('No matches'))))
             raise RequestDone
 
         matches = [AVAILABLE_LOCALES[l]
@@ -308,7 +312,7 @@ class L10NAdminModule(Component):
                    l.lower().startswith(query.lower())]
 
         if not matches:
-            req.write(tag.center(tag.em("No matches found for locale ",
+            req.write(tag.center(tag.em(_("No matches found for locale "),
                                         tag.b(query))))
             raise RequestDone
         req.write('<ul>')

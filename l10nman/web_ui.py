@@ -141,7 +141,7 @@ class L10nModule(Component):
 
         paginator = Paginator(messages, page-1, 5)
         data['messages'] = paginator
-        shown_pages = paginator.get_shown_pages(30)
+        shown_pages = paginator.get_shown_pages(25)
         pagedata = []
         for show_page in shown_pages:
             url = "/%s/%s" % (locale_id, show_page)

@@ -2,8 +2,10 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
-    xmlns:xi="http://www.w3.org/2001/XInclude">
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="layout.html" />
+  <xi:include href="l10n_macros.html" />
   <head>
     <title>Translations</title>
     <script type="text/javascript">
@@ -24,7 +26,10 @@
           </fieldset>
         </form>
       </div>
-      <h1>Messages for $locale - $display_name - $english_name</h1>
+      <h1>${_('Messages for %(locale)s - %(display_name)s - %(english_name)s') % dict(
+            locale=locale,
+            display_name=display_name,
+            english_name=english_name)}</h1>
       <py:if test="messages">
         <h2>
           Messages <span class="numresults">(${messages.displayed_items()})</span>
@@ -32,18 +37,19 @@
         <xi:include py:with="paginator = messages" href="page_index.html" />
       </py:if>
 
+
       <py:for each="msg in messages">
       <form action="${req.href.translate(msg.id)}" method="post">
         <fieldset>
           <table class="translations"
                  py:with="translations=msg.translations(catalog.id)">
             <tr>
-              <th>English:</th>
-              <td><span class="string">$msg.msgid</span></td>
+              <th>Original:</th>
+              <td><span class="string">${breaklines(msg.msgid)}</span></td>
             </tr>
             <tr py:if="msg.plural">
               <th>Plural Form:</th>
-              <td><span class="string">$msg.plural</span></td>
+              <td><span class="string">${breaklines(msg.plural)}</span></td>
             </tr>
             <tr py:with="locations=msg.locations">
               <th>${ngettext("Location:", "Locations:", len(locations))}</th>
@@ -52,8 +58,13 @@
                 </py:for>
               </td>
             </tr>
+            <tr py:if="msg.flags != []">
+              <th>Flags:</th><td>${ ', '.join(msg.flags) }</td>
+            </tr>
             <tr py:if="translations">
-              <th>${ngettext("Current Translation:", "Current Translations:", len(translations))}</th>
+              <th>${ngettext("Current Translation:",
+                             "Current Translations:",
+                             len(translations))}</th>
               <td>
                 <py:for each="trans in translations">
                 <fieldset>
@@ -62,17 +73,17 @@
                   <py:when test="msg.plural">
                     <tr>
                       <th>Translation [0]:</th>
-                      <td><span class="string">$trans.string</span></td>
+                      <td><span class="string">${breaklines(trans.string)}</span></td>
                     </tr>
                     <tr py:for="plural_form in trans.plurals" >
-                      <th>Translation [${plural_form.idx}]:</th>
-                      <td><span class="string">$plural_form.string</span></td>
+                      <th >${ _('Translation [%d]:') % plural_form.idx}</th>
+                      <td><span class="string">${breaklines(plural_form.string)}</span></td>
                     </tr>
                   </py:when>
                   <py:otherwise>
                     <tr>
                       <th>Translation:</th>
-                      <td><span class="string">$trans.string</span></td>
+                      <td><span class="string">${breaklines(trans.string)}</span></td>
                     </tr>
                   </py:otherwise>
                   </py:choose>
@@ -91,13 +102,13 @@
             </tr>
             <tr>
               <th>Comment For Translation:</th>
-              <td><textarea cols="50" rows="2" class="more_lines" name="comment"/></td>
+              <td><textarea cols="60" rows="3" name="comment"/></td>
             </tr>
             <py:choose test="">
             <py:when test="msg.plural">
             <tr py:for="idx in range(catalog.plurals)">
-              <th>New Translation For Index $idx:</th>
-              <td><textarea cols="50" rows="2" class="more_lines" name="translation"/></td>
+              <th>${ _('New Translation For Index %d:') % idx}</th>
+              <td><textarea cols="60" rows="3" class="more_lines" name="translation"/></td>
             </tr>
             </py:when>
             <py:otherwise>
