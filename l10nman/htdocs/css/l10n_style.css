@@ -45,14 +45,3 @@ table.translations th {
 }
 
 .floated { float: right; white-space: nowrap; }
-
-.legend1 {
-  background:#a1f48b none repeat scroll 0% 0%;
-  border:1px outset #DDDDCC;
-  float:right;
-  font-size:85%;
-  margin:0pt 0pt 2em 1em;
-  padding:0.5em 1em;
-  position:relative;
-  width: 15%;
-}
