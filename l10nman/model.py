@@ -458,7 +458,7 @@ class Translation(object):
         row = cursor.fetchone()
         if row:
             self.string, self.flags, self.uc, self.sid, self.status, self.ts = row
-            self.flags = self.flags.split(',')
+            self.flags = [f.strip() for f in self.flags.split(',') if f]
             self.uc = self.uc.split('\n')
             return True
         return False

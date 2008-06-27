@@ -1,8 +1,17 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:py="http://genshi.edgewall.org/" py:strip="">
 
-  <py:def function="breaklines(string)">
-    <py:for each="line in string.split('\n')">$line<br/></py:for>
+  <py:def function="breaklines(string)" py:with="lines = string.split('\n')">
+    <span class="string" title="'${'\\n'.join(lines)}'"><py:for
+      each="idx, line in enumerate(lines)">$line<img
+      src="${req.href.chrome('l10nman/img/linebreak.png')}"
+      title="Explicit Line Break"
+      py:strip="len(lines)==1 or idx==len(lines)-1"/><br
+        py:strip="len(lines)==1 or idx==len(lines)-1"/></py:for></span>
+  </py:def>
+
+  <py:def function="visible_value(value)">
+    ${round(5*value/3)}
   </py:def>
 
 </div>

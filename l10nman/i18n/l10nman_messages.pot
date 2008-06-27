@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: L10nManagerTracPlugin 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2008-06-27 12:40+0100\n"
+"POT-Creation-Date: 2008-06-27 18:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,21 +80,15 @@ msgstr ""
 msgid "No matches found for locale "
 msgstr ""
 
-#: l10nman/web_ui.py:36
-msgid ""
-"This is just a test\n"
-"multiline translatable string"
-msgstr ""
-
-#: l10nman/web_ui.py:78 l10nman/web_ui.py:80
+#: l10nman/web_ui.py:84 l10nman/web_ui.py:86
 msgid "Help To Translate"
 msgstr ""
 
-#: l10nman/web_ui.py:159
+#: l10nman/web_ui.py:157
 msgid "Next Page"
 msgstr ""
 
-#: l10nman/web_ui.py:162
+#: l10nman/web_ui.py:160
 msgid "Previous Page"
 msgstr ""
 
@@ -153,7 +147,7 @@ msgid "Catalog Template"
 msgstr ""
 
 #: l10nman/templates/l10n_admin_locales.html:66
-#: l10nman/templates/l10n_locales_list.html:15
+#: l10nman/templates/l10n_locales_list.html:16
 msgid "Locale"
 msgstr ""
 
@@ -161,44 +155,48 @@ msgstr ""
 msgid "Catalog Path"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:8
+#: l10nman/templates/l10n_locales_list.html:9
 msgid "Available Locales"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:16
+#: l10nman/templates/l10n_locales_list.html:17
 msgid "Display Name"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:17
+#: l10nman/templates/l10n_locales_list.html:18
 msgid "English Name"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:18
+#: l10nman/templates/l10n_locales_list.html:19
 msgid "Status"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:19
+#: l10nman/templates/l10n_locales_list.html:20
 msgid "Translated"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:20
+#: l10nman/templates/l10n_locales_list.html:21
 msgid "Fuzzy"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:21
+#: l10nman/templates/l10n_locales_list.html:22
 msgid "Untranslated"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:55
+#: l10nman/templates/l10n_locales_list.html:53
 msgid "- Translated Messages"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:57
+#: l10nman/templates/l10n_locales_list.html:55
 msgid "- Fuzzy Messages"
 msgstr ""
 
-#: l10nman/templates/l10n_locales_list.html:59
+#: l10nman/templates/l10n_locales_list.html:57
 msgid "- Untranslated Messages"
+msgstr ""
+
+#: l10nman/templates/l10n_macros.html:6
+msgid "Explicit Line Break"
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:10
@@ -214,56 +212,70 @@ msgstr ""
 msgid "Messages"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:30
+#: l10nman/templates/l10n_messages.html:29
 msgid "Translate"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:34
+#: l10nman/templates/l10n_messages.html:33
 msgid "Original:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:38
+#: l10nman/templates/l10n_messages.html:37
 msgid "Plural Form:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:42
+#: l10nman/templates/l10n_messages.html:41
 msgid "Location:"
 msgid_plural "Locations:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: l10nman/templates/l10n_messages.html:49
+#: l10nman/templates/l10n_messages.html:48 l10nman/templates/l10n_messages.html:84
 msgid "Flags:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:52
+#: l10nman/templates/l10n_messages.html:51
 msgid "Current Translation:"
 msgid_plural "Current Translations:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: l10nman/templates/l10n_messages.html:59
-msgid "Mark as a bad Translation"
+#: l10nman/templates/l10n_messages.html:60
+msgid "Mark as bad and"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:64
-msgid "Translation [0]:"
+#: l10nman/templates/l10n_messages.html:61
+msgid "Message is fuzzy"
+msgstr ""
+
+#: l10nman/templates/l10n_messages.html:61
+msgid "provide a new translation."
+msgstr ""
+
+#: l10nman/templates/l10n_messages.html:62
+msgid ""
+"Message needs to\n"
+"                    be re-translated."
 msgstr ""
 
 #: l10nman/templates/l10n_messages.html:68
+msgid "Translation [0]:"
+msgstr ""
+
+#: l10nman/templates/l10n_messages.html:72
 #, python-format
 msgid "Translation [%d]:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:74
+#: l10nman/templates/l10n_messages.html:78
 msgid "Translation:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:80
+#: l10nman/templates/l10n_messages.html:90
 msgid "Author:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:84
+#: l10nman/templates/l10n_messages.html:94
 msgid "Timestamp:"
 msgstr ""
 

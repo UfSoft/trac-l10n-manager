@@ -30,20 +30,29 @@ table.listing td.stats {
 
 ul.legend { list-style-type: none; padding-left: 0;}
 
-#filter {
-  float: right;
-  margin: 0;
-  padding: 0;
-  position: relative;
-  top: -25px;
-}
 
-table.translations { width: 100%; }
-span.string { background-color: #dedede; }
-table.translations th, .right {
+span.string {
+  background-color: #dedede;
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+table.translations th {
   white-space: nowrap;
   width: 10%;
   font-weight: bold;
   text-align: right;
   padding-right: 5px;
+}
+
+.floated { float: right; white-space: nowrap; }
+
+.legend1 {
+  background:#a1f48b none repeat scroll 0% 0%;
+  border:1px outset #DDDDCC;
+  float:right;
+  font-size:85%;
+  margin:0pt 0pt 2em 1em;
+  padding:0.5em 1em;
+  position:relative;
+  width: 15%;
 }

@@ -8,24 +8,9 @@
   <xi:include href="l10n_macros.html" />
   <head>
     <title>Translations</title>
-    <script type="text/javascript">
-      jQuery(document).ready( function($) {
-        $('.more_lines').resizeable();
-      });
-    </script>
   </head>
   <body>
     <div id="content" class="translations">
-      <div id="filter">
-        <form action="" method="post">
-          <fieldset>
-            <legend>Filter Messages</legend>
-            <input type="checkbox" name="show_translated" value="on"
-                   checked="${show_translated=='on' and 'checked' or None}">Show translated</input>
-            <input type="submit" value="Update"/>
-          </fieldset>
-        </form>
-      </div>
       <h1>${_('Messages for %(locale)s - %(display_name)s - %(english_name)s') % dict(
             locale=locale,
             display_name=display_name,
@@ -37,19 +22,20 @@
         <xi:include py:with="paginator = messages" href="page_index.html" />
       </py:if>
 
-
       <py:for each="msg in messages">
       <form action="${req.href.translate(msg.id)}" method="post">
-        <fieldset>
-          <table class="translations"
+        <fieldset class="translation">
+          <a class="floated"
+             href="${req.href.translate(catalog.id, msg.id)}">Translate</a>
+          <table class="translations" style="float: left; width: 90%;"
                  py:with="translations=msg.translations(catalog.id)">
             <tr>
               <th>Original:</th>
-              <td><span class="string">${breaklines(msg.msgid)}</span></td>
+              <td>${breaklines(msg.msgid)}</td>
             </tr>
             <tr py:if="msg.plural">
               <th>Plural Form:</th>
-              <td><span class="string">${breaklines(msg.plural)}</span></td>
+              <td>${breaklines(msg.plural)}</td>
             </tr>
             <tr py:with="locations=msg.locations">
               <th>${ngettext("Location:", "Locations:", len(locations))}</th>
@@ -58,7 +44,7 @@
                 </py:for>
               </td>
             </tr>
-            <tr py:if="msg.flags != []">
+            <tr py:if="msg.flags">
               <th>Flags:</th><td>${ ', '.join(msg.flags) }</td>
             </tr>
             <tr py:if="translations">
@@ -68,25 +54,38 @@
               <td>
                 <py:for each="trans in translations">
                 <fieldset>
+                  <span class="floated">
+                  <a href="${req.href.retranslate(catalog.id, msg.id)}">
+                    <span py:if="'fuzzy' not in trans.flags" py:strip=""
+                    >Mark as bad and </span><span py:if="'fuzzy' in trans.flags" py:strip=""
+                    >Message is fuzzy </span>provide a new translation.</a>
+                  <span class="message" py:if="'fuzzy' in trans.flags"><br/><em>Message needs to
+                    be re-translated.</em></span></span>
                   <table class="translations">
                   <py:choose test="">
                   <py:when test="msg.plural">
                     <tr>
                       <th>Translation [0]:</th>
-                      <td><span class="string">${breaklines(trans.string)}</span></td>
+                      <td>${breaklines(trans.string)}</td>
                     </tr>
                     <tr py:for="plural_form in trans.plurals" >
                       <th >${ _('Translation [%d]:') % plural_form.idx}</th>
-                      <td><span class="string">${breaklines(plural_form.string)}</span></td>
+                      <td>${breaklines(plural_form.string)}</td>
                     </tr>
                   </py:when>
                   <py:otherwise>
                     <tr>
                       <th>Translation:</th>
-                      <td><span class="string">${breaklines(trans.string)}</span></td>
+                      <td>${breaklines(trans.string)}</td>
                     </tr>
                   </py:otherwise>
                   </py:choose>
+                    <tr py:if="trans.flags">
+                      <th>Flags:</th>
+                      <td>
+                        ${ ', '.join(trans.flags) }
+                      </td>
+                    </tr>
                     <tr>
                       <th>Author:</th>
                       <td>$trans.sid</td>
@@ -100,28 +99,7 @@
                 </py:for>
               </td>
             </tr>
-            <tr>
-              <th>Comment For Translation:</th>
-              <td><textarea cols="60" rows="3" name="comment"/></td>
-            </tr>
-            <py:choose test="">
-            <py:when test="msg.plural">
-            <tr py:for="idx in range(catalog.plurals)">
-              <th>${ _('New Translation For Index %d:') % idx}</th>
-              <td><textarea cols="60" rows="3" class="more_lines" name="translation"/></td>
-            </tr>
-            </py:when>
-            <py:otherwise>
-            <tr>
-              <th>New Translation:</th>
-              <td><textarea cols="50" rows="2" class="more_lines" name="translation"/></td>
-            </tr>
-            </py:otherwise>
-            </py:choose>
           </table>
-          <div class="buttons">
-            <input type="submit" name="submit_translation" value="Submit Translation"/>
-          </div>
         </fieldset>
       </form>
       </py:for>

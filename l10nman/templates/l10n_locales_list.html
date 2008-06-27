@@ -4,6 +4,7 @@
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="layout.html" />
+  <xi:include href="l10n_macros.html" />
   <head>
     <title>Available Locales</title>
   </head>
@@ -27,9 +28,6 @@
             <td>$locale.display_name</td>
             <td>$locale.english_name</td>
             <td class="stats">
-            <py:def function="visible_value(value)">
-              ${round(5*value/3)}
-            </py:def>
             <span><img
               height="10" width="${visible_value(locale.translated_percent)}"
               src="${req.href.chrome('l10nman/img/green.png')}"
