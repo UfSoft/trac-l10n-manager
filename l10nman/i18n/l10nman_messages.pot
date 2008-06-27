@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: L10nManagerTracPlugin 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2008-06-26 23:26+0100\n"
+"POT-Creation-Date: 2008-06-27 12:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,11 +80,21 @@ msgstr ""
 msgid "No matches found for locale "
 msgstr ""
 
-#: l10nman/web_ui.py:160
+#: l10nman/web_ui.py:36
+msgid ""
+"This is just a test\n"
+"multiline translatable string"
+msgstr ""
+
+#: l10nman/web_ui.py:78 l10nman/web_ui.py:80
+msgid "Help To Translate"
+msgstr ""
+
+#: l10nman/web_ui.py:159
 msgid "Next Page"
 msgstr ""
 
-#: l10nman/web_ui.py:164
+#: l10nman/web_ui.py:162
 msgid "Previous Page"
 msgstr ""
 
@@ -195,78 +205,65 @@ msgstr ""
 msgid "Translations"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:22
-msgid "Filter Messages"
-msgstr ""
-
-#: l10nman/templates/l10n_messages.html:24
-msgid "Show translated"
-msgstr ""
-
-#: l10nman/templates/l10n_messages.html:29
+#: l10nman/templates/l10n_messages.html:14
 #, python-format
 msgid "Messages for %(locale)s - %(display_name)s - %(english_name)s"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:34
+#: l10nman/templates/l10n_messages.html:19
 msgid "Messages"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:47
+#: l10nman/templates/l10n_messages.html:30
+msgid "Translate"
+msgstr ""
+
+#: l10nman/templates/l10n_messages.html:34
 msgid "Original:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:51
+#: l10nman/templates/l10n_messages.html:38
 msgid "Plural Form:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:55
+#: l10nman/templates/l10n_messages.html:42
 msgid "Location:"
 msgid_plural "Locations:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: l10nman/templates/l10n_messages.html:62
+#: l10nman/templates/l10n_messages.html:49
 msgid "Flags:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:65
+#: l10nman/templates/l10n_messages.html:52
 msgid "Current Translation:"
 msgid_plural "Current Translations:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: l10nman/templates/l10n_messages.html:75
+#: l10nman/templates/l10n_messages.html:59
+msgid "Mark as a bad Translation"
+msgstr ""
+
+#: l10nman/templates/l10n_messages.html:64
 msgid "Translation [0]:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:79
+#: l10nman/templates/l10n_messages.html:68
 #, python-format
 msgid "Translation [%d]:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:85
+#: l10nman/templates/l10n_messages.html:74
 msgid "Translation:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:91
+#: l10nman/templates/l10n_messages.html:80
 msgid "Author:"
 msgstr ""
 
-#: l10nman/templates/l10n_messages.html:95
+#: l10nman/templates/l10n_messages.html:84
 msgid "Timestamp:"
-msgstr ""
-
-#: l10nman/templates/l10n_messages.html:104
-msgid "Comment For Translation:"
-msgstr ""
-
-#: l10nman/templates/l10n_messages.html:110
-#, python-format
-msgid "New Translation For Index %d:"
-msgstr ""
-
-#: l10nman/templates/l10n_messages.html:116
-msgid "New Translation:"
 msgstr ""
 
