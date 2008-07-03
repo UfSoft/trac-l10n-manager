@@ -163,10 +163,43 @@ class LocaleCatalog(object):
         self.refresh()
 
     def update_stats(self):
-        fuzzy = len(self.fuzzy)
-        translated = len(self.translated) - fuzzy
-        untranslated = len(self.untranslated)
-        max_value = fuzzy + translated + untranslated
+#        messages = self.messages
+#        max_value = len(messages)
+#
+#        # stats need to be redone, if a messages has several translations
+#        # some of which might not yet be accepted. Or onluy count those that
+#        # are accepted.
+##        db = self.env.get_db_cnx()
+##        cursor = db.cursor()
+##        fuzzy = 0
+##        translated = 0
+##        untranslated = len(messages)
+##        for message in self.messages:
+##            cursor.execute("SELECT DISTINCT locale_id, msgid_id, idx FROM "
+##                           "l10n_translations WHERE locale_id=%s AND "
+##                           "msgid_id=%s AND idx=0", (self.id, message.id))
+##            num_results = len(cursor.fetchall())
+##            translated += num_results
+##            untranslated
+#
+#        fuzzy = len(self.fuzzy)
+#        fuzzy = 0
+#        translated = 0
+#        untranslated = len(self.messages)
+        indexes = []
+        max_value = fuzzy = translated = untranslated = 0
+        for message in self.messages:
+            for translation in message.translations(self.id):
+                if (translation.locale_id, translation.msgid_id) not in indexes:
+                    if 'fuzzy' in translation.flags:
+                        fuzzy += 1
+                    else:
+                        translated += 1
+                    untranslated -= 1
+                    indexes.append((self.id, translation.msgid_id))
+            max_value += 1
+
+        untranslated += max_value
         fuzzy_percent = fuzzy * 100 / max_value
         translated_percent = translated * 100 / max_value
         untranslated_percent = untranslated * 100 / max_value
@@ -361,12 +394,12 @@ class Message(object):
     def translations(self, locale_id):
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT string FROM l10n_translations WHERE "
+        cursor.execute("SELECT idx, string FROM l10n_translations WHERE "
                        "locale_id=%s AND msgid_id=%s AND idx=0",
                        (locale_id, self.id))
 
         translations = []
-        for string in cursor:
+        for idx, string in cursor:
             translation = Translation(self.env, locale_id, self.id, string, 0)
             translations.append(translation)
         return translations
@@ -426,9 +459,11 @@ class Location(object):
 
 
 class Translation(object):
+    id = None
     locale_id = None
     msgid_id = None
     string = None
+    _string = None
     idx = 0
     flags = ''
     uc = ''
@@ -452,14 +487,28 @@ class Translation(object):
         #print 'refreshing translation -> locale_id: %s  msgid_id: %s' % (self.locale_id, self.msgid_id)
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("SELECT string, flags, uc, sid, status, ts FROM "
-                       "l10n_translations WHERE locale_id=%s AND msgid_id=%s "
-                       "AND idx=%s", (self.locale_id, self.msgid_id, self.idx))
+        print 654, self.string
+        if self.string:
+            self._string = copy(self.string)
+            cursor.execute("SELECT id, flags, uc, sid, status, ts FROM "
+                           "l10n_translations WHERE locale_id=%s AND msgid_id=%s "
+                           "AND idx=%s AND string=%s",
+                           (self.locale_id, self.msgid_id, self.idx,
+                            self.string))
+        else:
+            cursor.execute("SELECT id, string, flags, uc, sid, status, ts FROM "
+                           "l10n_translations WHERE locale_id=%s AND msgid_id=%s "
+                           "AND idx=%s",
+                           (self.locale_id, self.msgid_id, self.idx))
         row = cursor.fetchone()
         if row:
-            self.string, self.flags, self.uc, self.sid, self.status, self.ts = row
+            if self.string:
+                self.id, self.flags, self.uc, self.sid, self.status, \
+                                                                 self.ts = row
+            else:
+                self.id, self.string, self.flags, self.uc, self.sid, \
+                                                    self.status, self.ts = row
             self.flags = [f.strip() for f in self.flags.split(',') if f]
-            self.uc = self.uc.split('\n')
             return True
         return False
 
@@ -486,20 +535,29 @@ class Translation(object):
         assert self.msgid_id is not None
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        cursor.execute("UPDATE l10n_translations SET string=%s, "
-                       "flags=%s, uc=%s, sid=%s, status=%s, ts=%s WHERE "
-                       "locale_id=%s AND msgid_id=%s AND idx=%s",
-                       (self.string, ','.join(self.flags), '\n'.join(self.uc),
-                        self.sid, self.status, int(time.time()), self.locale_id,
-                        self.msgid_id, self.idx))
+        if self._string:
+            cursor.execute("UPDATE l10n_translations SET "
+                           "flags=%s, uc=%s, sid=%s, status=%s, ts=%s WHERE "
+                           "locale_id=%s AND msgid_id=%s AND idx=%s AND "
+                           "string=%s AND id=%s",
+                           (','.join(self.flags), self.uc,
+                            self.sid, self.status, int(time.time()),
+                            self.locale_id, self.msgid_id, self.idx,
+                            self._string, self.id))
+        else:
+            cursor.execute("UPDATE l10n_translations SET string=%s, "
+                           "flags=%s, uc=%s, sid=%s, status=%s, ts=%s WHERE "
+                           "locale_id=%s AND msgid_id=%s AND idx=%s AND id=%s",
+                           (self.string, ','.join(self.flags), self.uc,
+                            self.sid, self.status, int(time.time()),
+                            self.locale_id, self.msgid_id, self.idx, self.id))
         if not cursor.rowcount:
             cursor.execute("INSERT INTO l10n_translations (locale_id, msgid_id,"
                            " idx, string, flags, uc, sid, status, ts) VALUES ("
                            "%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                            (self.locale_id, self.msgid_id, self.idx,
-                            self.string, ','.join(self.flags),
-                            '\n'.join(self.uc), self.sid, self.status,
-                            int(time.time())))
+                            self.string, ','.join(self.flags), self.uc,
+                            self.sid, self.status, int(time.time())))
         db.commit()
         self.refresh()
 
@@ -516,3 +574,16 @@ class Translation(object):
         msgid = Message.get_by_id(self.env, self.msgid_id)
         return msgid.locations
 
+    @classmethod
+    def get_by_id(cls, env, id):
+        db = env.get_db_cnx()
+        cursor = db.cursor()
+        cursor.execute("SELECT locale_id, msgid_id, string, idx FROM "
+                       "l10n_translations WHERE id=%s", (id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return Translation(env, *row)
+
+
+#class TranslationVote

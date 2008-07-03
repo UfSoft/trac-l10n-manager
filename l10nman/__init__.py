@@ -37,9 +37,33 @@ class L10NManagerSetup(Component):
     # IEnvironmentSetupParticipant Methods
     def environment_created(self):
         self.found_db_version = 0
+        from l10nman import db
+        from sqlalchemy.databases import sqlite
+        from sqlalchemy.engine.base import Engine, Dialect
+        from sqlalchemy.pool import NullPool
+        engine = Engine(NullPool(self.env.get_db_cnx), sqlite.dialect(),
+                        'virtual:trac_connection')
+        db.meta.bind = engine
+        self.engine = engine
+        self.meta = db.meta
+        meta.create_all(bind=self.engine)
+        print 1, db.foo_table.create()
+        print 'foo1'
         self.upgrade_environment(self.env.get_db_cnx())
 
     def environment_needs_upgrade(self, db):
+        from l10nman import db as db1
+        from sqlalchemy.databases import sqlite
+        from sqlalchemy.engine.base import Engine, Dialect
+        from sqlalchemy.pool import NullPool
+        engine = Engine(NullPool(self.env.get_db_cnx), sqlite.dialect(),
+                        'virtual:trac_connection')
+        db1.meta.bind = engine
+        self.engine = engine
+        self.meta = db1.meta
+        self.meta.create_all(bind=self.engine)
+#        print 1, db.foo_table.create()
+        print 'foo2'
         cursor = db.cursor()
         cursor.execute("SELECT value FROM system WHERE name=%s",
                        (db_default.name,))

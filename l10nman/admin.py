@@ -210,7 +210,8 @@ class L10NAdminModule(Component):
             return add_error(_("Catalog already exists"))
         locale_catalog.save()
 
-        messages = list(read_po(StringIO(node.get_content().read())))
+        messages = list(read_po(StringIO(node.get_content().read()),
+                                locale=locale))
         for msg in messages[1:]:
             if isinstance(msg.string, basestring):
                 msgid = msg.id

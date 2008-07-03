@@ -13,15 +13,18 @@
 # Please view LICENSE for additional licensing information.
 # =============================================================================
 
+import random
 import re
 from cStringIO import StringIO
 
 from genshi.builder import tag
 
 from trac.core import *
+from trac.perm import IPermissionRequestor
 from trac.web import IRequestHandler
 from trac.web.chrome import ITemplateProvider, INavigationContributor
 from trac.web.chrome import add_link, add_stylesheet, add_script, add_ctxtnav
+from trac.web.chrome import add_warning, add_notice
 
 from trac.mimeview import *
 from trac.util.presentation import Paginator
@@ -32,10 +35,17 @@ from babel.messages.pofile import read_po
 
 from l10nman.model import *
 from l10nman.utils import AVAILABLE_LOCALES
+from l10nman.db import *
 
 
 class L10nModule(Component):
-    implements(ITemplateProvider, INavigationContributor, IRequestHandler)
+    implements(ITemplateProvider, INavigationContributor, IRequestHandler,
+               IPermissionRequestor)
+
+    # IPermissionRequestor methods
+    def get_permission_actions(self):
+        actions = ['L10N_ADD', 'L10N_DELETE', 'L10N_MODERATE']
+        return actions + [('L10N_ADMIN', actions)]
 
     # ITemplateProvider methods
     def get_htdocs_dirs(self):
@@ -56,6 +66,13 @@ class L10nModule(Component):
 
     # IRequestHandler methods
     def match_request(self, req):
+#        sqla = SqlaDbComponent(self.env)
+#        sqla.connection()
+        print system_table
+#        build_connection(self.env)
+#        print globals()
+        print system_table
+        query_system()
         match = re.match(r'^/(:?re)?translat(e|ions)(?:/(.*))?', req.path_info)
         if match:
             return True
@@ -81,9 +98,11 @@ class L10nModule(Component):
                 page = match.group(4) or 1
                 if locale_id:
                     # Render specific locale
-                    add_ctxtnav(req, tag.a(_('Help To Translate'),
-                                           href=req.href.translate(locale_id),
-                                           title=_('Help To Translate')))
+                    if 'L10N_ADD' in req.perm:
+                        add_ctxtnav(req,
+                                    tag.a(_('Help To Translate'),
+                                          href=req.href.translate(locale_id),
+                                          title=_('Help To Translate')))
                     return self.render_locale(req, locale_id, page)
                 # Render all locales
                 return self.process_locales_request(req, locale_id, page)
@@ -97,8 +116,7 @@ class L10nModule(Component):
         locales_data = []
 
         for catalog in catalogs:
-            locale, english_name, display_name = \
-                                            AVAILABLE_LOCALES[catalog.locale]
+            locale, ename, dname = AVAILABLE_LOCALES[catalog.locale]
 
             stats = catalog.stats
             if stats:
@@ -111,8 +129,8 @@ class L10nModule(Component):
             locales_data.append({
                 'catalog': catalog,
                 'locale': locale,
-                'english_name': english_name,
-                'display_name': display_name,
+                'english_name': ename,
+                'display_name': dname,
                 'fuzzy': fuzzy,
                 'fuzzy_percent': fuzzy_percent,
                 'translated': translated,
@@ -139,7 +157,6 @@ class L10nModule(Component):
         data['catalog'] = locale
 
         paginator = Paginator(locale.messages, page-1, 5)
-#        print [n[0].flags for n in [t for t in [m.translations(locale_id) for m in paginator] if t]]
         data['messages'] = paginator
         shown_pages = paginator.get_shown_pages(25)
         pagedata = []
@@ -161,11 +178,62 @@ class L10nModule(Component):
         return 'l10n_messages.html', data, None
 
 
-    def process_translate_request(self, req, locale_id, msgid):
-        if not msgid:
+    def process_translate_request(self, req, locale_id, msgid_id):
+        locale_catalog = LocaleCatalog.get_by_id(self.env, locale_id)
+        data = {
+            'locale_id': locale_id,
+            'catalog': locale_catalog,
+            'random_message_passed': req.args.get('random_message_passed', 0)
+        }
+        if req.method == 'POST':
+            # Add a new translation
+            message = Message.get_by_id(self.env, msgid_id)
+            data['message'] = message
+            if message.plural:
+                translations = []
+                for idx in range(locale_catalog.plurals):
+                    translation = req.args.get('translation-%d' % idx)
+                    if not translation:
+                        data.update(req.args)
+                        add_warning(req, _("All translation fields must be "
+                                           "filled"))
+                        return 'l10n_translate_message.html', data, None
+                    translations.append((idx, translation))
+            else:
+                translation = req.args.get('translation')
+                if not translation:
+                    data.update(req.args)
+                    add_warning(req, _("All translation fields must be filled"))
+                    return 'l10n_translate_message.html', data, None
+                translations = [(0, translation)]
+            comment = req.args.get('comment')
+            print 'translations', translations
+            for idx, string in translations:
+                translation = Translation(self.env, locale_id, msgid_id,
+                                          string, idx, req.authname)
+                if comment:
+                    translation.uc = comment.replace('\r\n', '\n')
+                    print 'comment', repr(translation.uc)
+                if 'fuzzy' in translation.flags:
+                    translation.flags.pop(translation.flags.index('fuzzy'))
+                translation.save()
+            if translations:
+                locale_catalog.update_stats()
+            add_notice(req, _("Translation added"))
+            if req.args.get('random_message_passed', 0) == 1:
+                req.redirect(req.href.translate(locale_id))
+            else:
+                req.redirect(req.href.translations(locale_id))
+
+        if not msgid_id:
             # send a random untranslated message
-            pass
-        pass
+            message = random.choice(locale_catalog.untranslated +
+                                    locale_catalog.fuzzy)
+            data['random_message_passed'] = 1
+        else:
+            message = Message.get_by_id(self.env, msgid_id)
+        data['message'] = message
+        return 'l10n_translate_message.html', data, None
 
     def process_retranslate_request(self, req, locale_id, msgid):
         pass

@@ -64,6 +64,7 @@ tables = [
         Index(['msgid_id', 'fname','lineno'])
     ],
     Table('l10n_translations', key=('locale_id', 'msgid_id', 'string', 'idx'))[
+        Column('id', auto_increment=True),
         Column('locale_id', type='integer'), # FK l10n_locales.id
         Column('msgid_id', type='integer'), # FK l10n_messages.id
         Column('idx', type="integer"), # plural form index, 0 for non plural
@@ -74,6 +75,10 @@ tables = [
         Column('ts', type="integer"), # TimeStamp
         Column('status'), # ENUM: waiting,  reviewed, rejected, etc
         Index(['locale_id', 'msgid_id', 'string', 'idx'])
+    ],
+    Table('l10n_translation_votes', key=('translation_id', 'sid'))[
+        Column('id', type="integer"), # FK l10n_translations.id
+        Column('sid'), # username of the voter
     ]
 ]
 

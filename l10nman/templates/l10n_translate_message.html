@@ -10,23 +10,11 @@
     <title>Translations</title>
   </head>
   <body>
-    <div id="content" class="translations">
-      <h1>${_('Messages for %(locale)s - %(display_name)s - %(english_name)s') % dict(
-            locale=locale,
-            display_name=display_name,
-            english_name=english_name)}</h1>
-      <py:if test="messages">
-        <h2>
-          Messages <span class="numresults">(${messages.displayed_items()})</span>
-        </h2>
-        <xi:include py:with="paginator = messages" href="page_index.html" />
-      </py:if>
-
-      <py:for each="msg in messages">
-      <form action="${req.href.translate(msg.id)}" method="post">
+    <div id="content">
+      <h2>$max_untranslated messages still need a translation</h2>
+      <form action="${req.href.translate(locale_id, msg.id)}" method="post"
+            py:with="msg=message">
         <fieldset class="translation">
-          <a class="floated" py:if="'L10N_ADD' in req.perm"
-             href="${req.href.translate(catalog.id, msg.id)}">Translate</a>
           <table class="translations" style="float: left; width: 90%;"
                  py:with="translations=msg.translations(catalog.id)">
             <tr>
@@ -54,13 +42,9 @@
               <td>
                 <py:for each="trans in translations">
                 <fieldset>
-                  <span class="floated" py:if="'L10N_ADD' in req.perm">
-                  <a href="${req.href.retranslate(catalog.id, msg.id)}">
-                    <span py:if="'fuzzy' not in trans.flags" py:strip=""
-                    >Mark as bad and </span><span py:if="'fuzzy' in trans.flags" py:strip=""
-                    >Message is fuzzy </span>provide a new translation.</a>
-                  <span class="message" py:if="'fuzzy' in trans.flags"><br/><em>Message needs to
-                    be re-translated.</em></span></span>
+                  <span class="floated" py:if="'fuzzy' in trans.flags">
+                    <em>Translation is fuzzy, it needs to be re-translated.</em>
+                  </span>
                   <table class="translations">
                     <tr py:if="trans.uc">
                       <th>Translator Comment:</th>
@@ -103,11 +87,25 @@
                 </py:for>
               </td>
             </tr>
+            <tr>
+              <th>Translation Comment:</th>
+              <td><textarea name="comment" rows="2" cols="70">$comment</textarea></td>
+            </tr>
+            <tr py:if="not msg.plural">
+              <th>New Translation:</th>
+              <td><textarea name="translation" rows="6" cols="70"/></td>
+            </tr>
+            <tr py:if="msg.plural" py:for="idx in range(catalog.plurals)" >
+              <th >${ _('Translation [%d]:') % idx}</th>
+              <td><textarea name="translation-$idx" rows="6" cols="70"/></td>
+            </tr>
           </table>
         </fieldset>
+        <div class="buttons">
+          <input type="hidden" name="random_message_passed" value="$random_message_passed"/>
+          <input type="submit" name="save" value="Add Translation"/>
+        </div>
       </form>
-      </py:for>
-      <xi:include py:with="paginator = messages" href="page_index.html" />
     </div>
   </body>
 </html>
