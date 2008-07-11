@@ -86,8 +86,6 @@ class L10nModule(Component):
         if not match:
             raise ResourceNotFound("Bad URL")
 
-        print '\n\n', req._inheaders
-
         vote = 0
 
         action, translation_id = match.groups()
@@ -97,64 +95,70 @@ class L10nModule(Component):
                 vote += 1
             else:
                 vote -= 1
+        elif action == 'remove_vote':
+            pass
         elif action == 'mark_fuzzy':
             pass
         else:
             raise ResourceNotFound("Bad URL")
 
         ajax_request = req.get_header('X-Requested-With')
-        print 'Ajax Request', ajax_request
+        self.log.debug('Got an AJAX Request: %r', req.args)
 
         Session = session(self.env)
+
         translation = Session.query(Translation).get(int(translation_id))
+        data = {'translation': translation}
 
         sid_voted = translation.votes.filter_by(sid=req.authname).first()
 
-        data = {'translation': translation}
-
-        error = _("Not counting your vote. You already voted")
-
-        if not sid_voted:
-            translation.votes.append(TranslationVote(translation,
-                                                     req.authname, vote))
-            Session.commit()
-
-        else:
-            if sid_voted.vote == vote:
-                # This must be a hand made request, a bad one
+        if action == 'remove_vote':
+            if not sid_voted:
+                error = _("You didn't vote for this translation")
                 if ajax_request:
-                    # Set error to be rendered
                     data['error'] = error
                 else:
-                    self.log.debug('NOT Handling AJAX Vote??? Raising TracError')
-                    raise TracError(error)
+                      raise TracError(error)
             else:
-                # User is changing his vote
-                sid_voted.vote = vote
+                Session.delete(sid_voted)
+                Session.commit()
+        elif action in ['vote_up', 'vote_down']:
+            error = _("Not counting your vote. You already voted")
+            if not sid_voted:
+                translation.votes.append(TranslationVote(translation,
+                                                         req.authname, vote))
                 Session.commit()
 
+            else:
+                if sid_voted.vote == vote:
+                    # This must be a hand made request, a bad one
+                    if ajax_request:
+                        # Set error to be rendered
+                        data['error'] = error
+                    else:
+                        raise TracError(error)
+                else:
+                    # User is changing his vote
+                    sid_voted.vote = vote
+                    Session.commit()
+
         if ajax_request:
-            self.log.debug('Handling AJAX Vote')
             # Return a partial render
             chrome = Chrome(self.env)
             output = chrome.render_template(req, 'l10n_vote_td_snippet.html',
                                             data, fragment=True)
+            # Don't forget to include the form token to keep trac happy
             if req.form_token:
                 output |= chrome._add_form_token(req.form_token)
             req.write(output.render())
-            self.log.debug('AJAX Request about to complete')
             raise RequestDone
         else:
-            self.log.debug('NOT Handling AJAX Vote')
             host = req.get_header('host')
             referer = req.get_header('referer')
             if referer:
                 redirect_back = referer.split(host)[-1]
             else:
                 redirect_back = req.href.translations()
-            add_notice(req, 'foo')
-            print '\n\nadded notice\n\n'
-            self.log.debug('Redirecting ...')
             req.redirect(redirect_back)
 
     def process_translate_request(self, req):

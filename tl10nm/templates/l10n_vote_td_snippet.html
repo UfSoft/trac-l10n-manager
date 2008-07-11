@@ -19,14 +19,17 @@
           </form>
         </th>
         <td><span><py:for each="idx, voter in enumerate(positive_voters.all())"
-          >$voter.sid<span py:if="idx!=positive_voters_count-1">, </span></py:for>
+          ><a href="${req.href.translation('remove_vote', translation.id)}"
+              title="Remove my vote '${req.path_info}' 1" class="vote-$translation.id-link superscript"
+              py:strip="voter.sid!=req.authname">$voter.sid</a><span
+            py:if="idx!=positive_voters_count-1">, </span></py:for>
         </span></td>
       </tr>
       <tr py:with="votes=translation.votes_count">
         <th>${votes &gt; 0 and '+%d' % votes or votes}</th>
         <td>
           ($positive_voters_count - $negative_voters_count)
-          <span py:if="error">$error</span>
+          <span class="error" py:if="error">$error</span>
         </td>
       </tr>
       <tr py:with="voted=voter and voter.vote==-1">
@@ -41,7 +44,10 @@
           </form>
         </th>
         <td><span><py:for each="idx, voter in enumerate(negative_voters)"
-          >$voter.sid<span py:if="idx!=negative_voters_count-1">, </span></py:for>
+          ><a href="${req.href.translation('remove_vote', translation.id)}"
+              title="Remove my vote" class="vote-$translation.id-link superscript"
+              py:strip="voter.sid!=req.authname">$voter.sid</a><span
+                py:if="idx!=negative_voters_count-1">, </span></py:for>
         </span></td>
       </tr>
     </table>
@@ -49,6 +55,7 @@
   <script type="text/javascript">
     jQuery(document).ready( function($) {
       $('.vote-$translation.id-form').hijax_vote_form();
+      $('.vote-$translation.id-link').hijax_vote_link();
     });
   </script>
 </div>

@@ -68,6 +68,7 @@ li.catalog { list-style: none; margin-bottom: 4em }
 }
 .catalog .info h2 em { color: #b00; font-style: normal }
 
+/* Translation voting table styles */
 table.translation_votes tr { vertical-align: middle; }
 table.translation_votes th {
   text-align: center;
@@ -77,3 +78,9 @@ table.translation_votes td {
   text-align: left;
   font-size: 80%;
 }
+table.translation_votes td span.error{
+  color: red;
+  padding: 10px;
+  font-size: 100%;
+}
+
