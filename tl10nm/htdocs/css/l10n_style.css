@@ -83,4 +83,6 @@ table.translation_votes td span.error{
   padding: 10px;
   font-size: 100%;
 }
+a.hijax { text-decoration: none; border: 0; }
+a.hijax img { border: none; }
 

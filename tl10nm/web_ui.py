@@ -86,21 +86,9 @@ class L10nModule(Component):
         if not match:
             raise ResourceNotFound("Bad URL")
 
-        vote = 0
+        redirect_back = req.args.get('redirect_back', req.href.translations())
 
         action, translation_id = match.groups()
-
-        if action in ['vote_up', 'vote_down']:
-            if action == 'vote_up':
-                vote += 1
-            else:
-                vote -= 1
-        elif action == 'remove_vote':
-            pass
-        elif action == 'mark_fuzzy':
-            pass
-        else:
-            raise ResourceNotFound("Bad URL")
 
         ajax_request = req.get_header('X-Requested-With')
         self.log.debug('Got an AJAX Request: %r', req.args)
@@ -118,12 +106,13 @@ class L10nModule(Component):
                 if ajax_request:
                     data['error'] = error
                 else:
-                      raise TracError(error)
+                    raise TracError(error)
             else:
                 Session.delete(sid_voted)
                 Session.commit()
         elif action in ['vote_up', 'vote_down']:
-            error = _("Not counting your vote. You already voted")
+            error = _("Not counting your vote. You already voted once.")
+            vote = action=='vote_up' and 1 or -1
             if not sid_voted:
                 translation.votes.append(TranslationVote(translation,
                                                          req.authname, vote))
@@ -141,6 +130,10 @@ class L10nModule(Component):
                     # User is changing his vote
                     sid_voted.vote = vote
                     Session.commit()
+        elif action == 'mark_fuzzy':
+            pass
+        else:
+            raise ResourceNotFound("Bad URL")
 
         if ajax_request:
             # Return a partial render
@@ -153,12 +146,6 @@ class L10nModule(Component):
             req.write(output.render())
             raise RequestDone
         else:
-            host = req.get_header('host')
-            referer = req.get_header('referer')
-            if referer:
-                redirect_back = referer.split(host)[-1]
-            else:
-                redirect_back = req.href.translations()
             req.redirect(redirect_back)
 
     def process_translate_request(self, req):

@@ -1,7 +1,7 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/" py:strip="">
 
-  <div id="vote-$translation.id-contents"
+  <div id="contents-$translation.id"
        py:with="voter=translation.votes.filter_by(sid=req.authname).first();
              positive_voters=translation.votes.filter_by(vote=1);
              negative_voters=translation.votes.filter_by(vote=-1);
@@ -10,20 +10,20 @@
     <table class="translation_votes">
       <tr py:with="voted=voter and voter.vote==1">
         <th>
-          <form action="${req.href.translation('vote_up', translation.id)}"
-                method="post" class="vote-$translation.id-form">
-            <img src="${req.href.chrome('tl10nm/img/upvoted.png')}"
-                 py:if="voted or 'L10N_ADD' not in req.perm"/>
-            <input type="image" src="${req.href.chrome('tl10nm/img/upvote.png')}"
-                   value="1" name="vote" py:if="not voted and 'L10N_ADD' in req.perm"/>
-          </form>
+          <a href="${req.href.translation('vote_up', translation.id, redirect_back=req.path_info)}"
+             title="Vote Up" class="hijax" tid="$translation.id"
+             py:strip="voted or 'L10N_ADD' not in req.perm">
+            <img src="${ req.href.chrome(voted and 'tl10nm/img/upvoted.png' or 'tl10nm/img/upvote.png')}"/>
+          </a>
         </th>
-        <td><span><py:for each="idx, voter in enumerate(positive_voters.all())"
-          ><a href="${req.href.translation('remove_vote', translation.id)}"
-              title="Remove my vote '${req.path_info}' 1" class="vote-$translation.id-link superscript"
-              py:strip="voter.sid!=req.authname">$voter.sid</a><span
-            py:if="idx!=positive_voters_count-1">, </span></py:for>
-        </span></td>
+        <td><span>
+          <py:for each="idx, voter in enumerate(positive_voters.all())">
+            <a href="${req.href.translation('remove_vote', translation.id, redirect_back=req.path_info)}"
+               title="Remove my vote" class="hijax" tid="$translation.id"
+               py:strip="voter.sid!=req.authname">$voter.sid</a><span
+                  py:if="idx!=positive_voters_count-1">, </span></py:for>
+          </span>
+        </td>
       </tr>
       <tr py:with="votes=translation.votes_count">
         <th>${votes &gt; 0 and '+%d' % votes or votes}</th>
@@ -34,28 +34,26 @@
       </tr>
       <tr py:with="voted=voter and voter.vote==-1">
         <th>
-          <form action="${req.href.translation('vote_down', translation.id)}"
-                method="post" class="vote-$translation.id-form">
-            <img src="${req.href.chrome('tl10nm/img/downvoted.png')}"
-                 py:if="voted or 'L10N_ADD' not in req.perm"/>
-            <input type="image" src="${req.href.chrome('tl10nm/img/downvote.png')}"
-                   value="1" name="vote"
-                   py:if="not voted and 'L10N_ADD' in req.perm"/>
-          </form>
+          <a href="${req.href.translation('vote_down', translation.id, redirect_back=req.path_info)}"
+             title="Vote Down" class="hijax" tid="$translation.id"
+             py:strip="voted or 'L10N_ADD' not in req.perm">
+            <img src="${ req.href.chrome(voted and 'tl10nm/img/downvoted.png' or 'tl10nm/img/downvote.png')}"/>
+          </a>
         </th>
-        <td><span><py:for each="idx, voter in enumerate(negative_voters)"
-          ><a href="${req.href.translation('remove_vote', translation.id)}"
-              title="Remove my vote" class="vote-$translation.id-link superscript"
-              py:strip="voter.sid!=req.authname">$voter.sid</a><span
-                py:if="idx!=negative_voters_count-1">, </span></py:for>
-        </span></td>
+        <td>
+          <span><py:for each="idx, voter in enumerate(negative_voters.all())">
+            <a href="${req.href.translation('remove_vote', translation.id, redirect_back=req.path_info)}"
+               title="Remove my vote" class="hijax" tid="$translation.id"
+               py:strip="voter.sid!=req.authname">$voter.sid</a><span
+                  py:if="idx!=negative_voters_count-1">, </span>
+          </py:for></span>
+        </td>
       </tr>
     </table>
   </div>
   <script type="text/javascript">
     jQuery(document).ready( function($) {
-      $('.vote-$translation.id-form').hijax_vote_form();
-      $('.vote-$translation.id-link').hijax_vote_link();
+      $('#contents-$translation.id a.hijax').hijax_link_request();
     });
   </script>
 </div>
