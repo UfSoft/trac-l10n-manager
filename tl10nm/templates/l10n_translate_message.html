@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:i18n="http://genshi.edgewall.org/i18n">
+  <xi:include href="layout.html" />
+  <xi:include href="l10n_macros.html" />
+  <head>
+    <title>Translations</title>
+  </head>
+  <body>
+    <div id="content" class="narrow_content">
+      <h2>$max_untranslated messages still need a translation</h2>
+      <form action="${req.href.translate(catalog_id, locale, message.id)}"
+            method="post">
+        ${ render_message(message.catalog, locale, message, False) }
+        <hr/>
+        <h2>Translate Message</h2>
+        <fieldset class="translation">
+          <table class="translations" style="float: left; width: 90%;">
+            <tr py:if="translations">
+              <th>${ngettext("Current Translation:",
+                             "Current Translations:",
+                             len(translations))}</th>
+              <td>
+                <py:for each="trans in translations">
+                <fieldset>
+                  <span class="floated" py:if="'fuzzy' in trans.flags">
+                    <em>Translation is fuzzy, it needs to be re-translated.</em>
+                  </span>
+                  <table class="translations">
+                    <tr py:if="trans.uc">
+                      <th>Translator Comment:</th>
+                      <td>${breaklines(trans.uc)}</td>
+                    </tr>
+                  <py:choose test="">
+                  <py:when test="message.plural">
+                    <tr>
+                      <th>Translation [0]:</th>
+                      <td>${breaklines(trans.string)}</td>
+                    </tr>
+                    <tr py:for="plural_form in trans.plurals" >
+                      <th >${ _('Translation [%d]:') % plural_form.idx}</th>
+                      <td>${breaklines(plural_form.string)}</td>
+                    </tr>
+                  </py:when>
+                  <py:otherwise>
+                    <tr>
+                      <th>Translation:</th>
+                      <td>${breaklines(trans.string)}</td>
+                    </tr>
+                  </py:otherwise>
+                  </py:choose>
+                    <tr py:if="trans.flags">
+                      <th>Flags:</th>
+                      <td>
+                        ${ ', '.join(trans.flags) }
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Author:</th>
+                      <td>$trans.sid</td>
+                    </tr>
+                    <tr>
+                      <th>Timestamp:</th>
+                      <td>${format_datetime(trans.ts)}</td>
+                    </tr>
+                  </table>
+                </fieldset>
+                </py:for>
+              </td>
+            </tr>
+            <tr>
+              <th>Translation Comment:</th>
+              <td><textarea name="comment" rows="2" cols="70">$comment</textarea></td>
+            </tr>
+            <tr py:if="not message.plural">
+              <th>New Translation:</th>
+              <td><textarea name="translation" rows="6" cols="70"/></td>
+            </tr>
+            <tr py:if="message.plural" py:for="idx in range(locale.num_plurals)" >
+              <th >${ _('Translation [%d]:') % idx}</th>
+              <td><textarea name="translation-$idx" rows="6" cols="70"/></td>
+            </tr>
+          </table>
+        </fieldset>
+        <div class="buttons">
+          <input type="hidden" name="random_message_passed" value="$random_message_passed"/>
+          <input type="submit" name="save" value="Add Translation"/>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

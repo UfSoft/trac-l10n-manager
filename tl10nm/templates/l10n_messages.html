@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:i18n="http://genshi.edgewall.org/i18n">
+  <xi:include href="layout.html" />
+  <xi:include href="l10n_macros.html" />
+  <head>
+    <title>Translations</title>
+  </head>
+  <body>
+    <div id="content" class="translations narrow_content">
+      <py:if test="messages">
+        <h2>
+          ${_('Messages for %(locale)s - %(display_name)s - %(english_name)s') % dict(
+            locale=locale.locale,
+            display_name=locale.locale.display_name,
+            english_name=locale.locale.english_name)
+           } <span class="numresults">(${messages.displayed_items()})</span>
+        </h2>
+        <xi:include py:with="paginator = messages" href="page_index.html" />
+      </py:if>
+
+      <py:for each="msg in messages">
+        ${ render_message(locale.catalog, locale, msg, True) }
+      </py:for>
+      <xi:include py:with="paginator = messages" href="page_index.html" />
+    </div>
+
+  <script type="text/javascript">
+    jQuery(document).ready( function($) {
+      $('form.hijax').hijax_vote_form();
+    });
+  </script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+
+  <div id="vote-$translation.id-contents"
+       py:with="voter=translation.votes.filter_by(sid=req.authname).first();
+             positive_voters=translation.votes.filter_by(vote=1);
+             negative_voters=translation.votes.filter_by(vote=-1);
+             positive_voters_count=positive_voters.count();
+             negative_voters_count=negative_voters.count()">
+    <table class="translation_votes">
+      <tr py:with="voted=voter and voter.vote==1">
+        <th>
+          <form action="${req.href.translation('vote_up', translation.id)}"
+                method="post" class="vote-$translation.id-form">
+            <img src="${req.href.chrome('tl10nm/img/upvoted.png')}"
+                 py:if="voted or 'L10N_ADD' not in req.perm"/>
+            <input type="image" src="${req.href.chrome('tl10nm/img/upvote.png')}"
+                   value="1" name="vote" py:if="not voted and 'L10N_ADD' in req.perm"/>
+          </form>
+        </th>
+        <td><span><py:for each="idx, voter in enumerate(positive_voters.all())"
+          >$voter.sid<span py:if="idx!=positive_voters_count-1">, </span></py:for>
+        </span></td>
+      </tr>
+      <tr py:with="votes=translation.votes_count">
+        <th>${votes &gt; 0 and '+%d' % votes or votes}</th>
+        <td>
+          ($positive_voters_count - $negative_voters_count)
+          <span py:if="error">$error</span>
+        </td>
+      </tr>
+      <tr py:with="voted=voter and voter.vote==-1">
+        <th>
+          <form action="${req.href.translation('vote_down', translation.id)}"
+                method="post" class="vote-$translation.id-form">
+            <img src="${req.href.chrome('tl10nm/img/downvoted.png')}"
+                 py:if="voted or 'L10N_ADD' not in req.perm"/>
+            <input type="image" src="${req.href.chrome('tl10nm/img/downvote.png')}"
+                   value="1" name="vote"
+                   py:if="not voted and 'L10N_ADD' in req.perm"/>
+          </form>
+        </th>
+        <td><span><py:for each="idx, voter in enumerate(negative_voters)"
+          >$voter.sid<span py:if="idx!=negative_voters_count-1">, </span></py:for>
+        </span></td>
+      </tr>
+    </table>
+  </div>
+  <script type="text/javascript">
+    jQuery(document).ready( function($) {
+      $('.vote-$translation.id-form').hijax_vote_form();
+    });
+  </script>
+</div>

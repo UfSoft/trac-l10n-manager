@@ -1,0 +1,66 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <py:with vars="voter=translation.votes.filter_by(sid=req.authname).first();
+                 positive_voters=translation.votes.filter_by(vote=1);
+                 negative_voters=translation.votes.filter_by(vote=-1);
+                 positive_voters_count=positive_voters.count();
+                 negative_voters_count=negative_voters.count()">
+    <py:with vars="voted=voter and voter.vote==1">
+    <form action="${req.href.translation('vote_up', translation.id)}"
+          method="post" id="translation-vote-up-$translation.id-hijax">
+      <img src="${req.href.chrome('tl10nm/img/upvoted.png')}" py:if="voted"/>
+      <input type="image" src="${req.href.chrome('tl10nm/img/upvote.png')}"
+             value="1" name="vote" py:if="not voted"/>
+      <span><py:for each="idx, voter in enumerate(positive_voters.all())"
+        >$voter.sid<span py:if="idx!=positive_voters_count-1">, </span></py:for>
+      </span>
+    </form>
+    <script type="text/javascript">
+      jQuery(document).ready( function($) {
+        var form_id = "#translation-vote-up-$translation.id-hijax";
+        $(form_id).submit( function() {
+          $.ajax({
+            url: "${ req.href.translation('vote_up', translation.id) }",
+            type: 'POST',
+            cache: false,
+            success: function(data) {
+                $(form_id).append(data)
+            },
+          });
+        });
+        $(form_id).action = 'javascript:';
+      });
+    </script>
+    </py:with>
+    <span id="tvote" py:with="votes=translation.votes_count">
+      <b>${votes &gt; 0 and '+%d' % votes or votes}</b>
+      ($positive_voters_count - $negative_voters_count)
+    </span>
+    <py:with vars="voted=voter and voter.vote==-1">
+    <form action="${req.href.translation('vote_down', translation.id)}"
+          method="post" id="translation-vote-down-$translation.id-hijax">
+      <span><img src="${req.href.chrome('tl10nm/img/downvoted.png')}" py:if="voted"/></span>
+      <input type="image" src="${req.href.chrome('tl10nm/img/downvote.png')}"
+             value="1" name="vote" py:if="not voted"/>
+
+      <span><py:for each="idx, voter in enumerate(negative_voters)"
+        >$voter.sid<span py:if="idx!=negative_voters_count-1">, </span></py:for>
+      </span>
+    </form>
+    <script type="text/javascript">
+      jQuery(document).ready( function($) {
+        var form_id = "#translation-vote-down-$translation.id-hijax";
+        $(form_id).action = 'javascript:';
+        $(form_id).submit( function() {
+          $.post(
+            "${ req.href.translation('vote_down', translation.id) }",
+            {},
+            function(data) {
+                $(form_id).append(data)
+            });
+        });
+      });
+    </script>
+    </py:with>
+  </py:with>
+</div>

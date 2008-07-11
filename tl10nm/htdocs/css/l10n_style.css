@@ -1,0 +1,79 @@
+.narrow_content { padding-left: 20px; padding-right: 20px; }
+
+fieldset.fuzzy { background-color: red; }
+
+table.side_heads th {
+  text-align: right;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+p.help tt { font-weight: bold; }
+
+input.loading {
+  background: url("../../common/loading.gif") right center no-repeat;
+}
+
+.translations h2 {
+  text-align: center;
+  background:#F7F7F7 none repeat scroll 0% 0%;
+  border-bottom:1px solid #D7D7D7;
+  margin:2em 0pt 0pt;
+  padding:0pt 0.33em;
+}
+
+table.listing { width: 100%; }
+table.listing td { vertical-align: middle; }
+table.listing td.stats {
+  text-align: center;
+  white-space: nowrap;
+  width: 165px;
+}
+
+ul.legend { list-style-type: none; padding-left: 0;}
+
+
+span.string {
+  background-color: #dedede;
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+table.translations th, table.message th {
+  white-space: nowrap;
+  width: 10%;
+  font-weight: bold;
+  text-align: right;
+  padding-right: 5px;
+}
+
+.floated { float: right; white-space: nowrap; }
+
+
+/* Styles for the catalogs list */
+ul.catalogs { margin: 2em 0 0; padding: 0 }
+li.catalog { list-style: none; margin-bottom: 4em }
+.catalog .info { white-space: nowrap }
+.catalog .info h2 {
+ background: #f7f7f7;
+ border-bottom: 1px solid #d7d7d7;
+ margin: 0;
+}
+.catalog .info h2 :link, .catalog .info h2 :visited {
+ color: #000;
+ display: block;
+ border-bottom: none;
+}
+.catalog .info h2 :link:hover, .catalog .info h2 :visited:hover {
+ color: #000;
+}
+.catalog .info h2 em { color: #b00; font-style: normal }
+
+table.translation_votes tr { vertical-align: middle; }
+table.translation_votes th {
+  text-align: center;
+  font-weight: bold;
+}
+table.translation_votes td {
+  text-align: left;
+  font-size: 80%;
+}

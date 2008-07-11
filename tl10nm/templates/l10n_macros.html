@@ -1,0 +1,96 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:py="http://genshi.edgewall.org/"
+     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+
+  <py:def function="breaklines(string)" py:with="lines = string.split('\n')">
+    <span class="string" title="'${'\\n'.join(lines)}'"><py:for
+      each="idx, line in enumerate(lines)">$line<img
+      src="${req.href.chrome('tl10nm/img/linebreak.png')}"
+      title="Explicit Line Break"
+      py:strip="len(lines)==1 or idx==len(lines)-1"/><br
+        py:strip="len(lines)==1 or idx==len(lines)-1"/></py:for></span>
+  </py:def>
+
+  <py:def function="visible_value(value)">
+    ${round(5*value/3)}
+  </py:def>
+
+  <py:def function="render_message(catalog, locale, message, show_link=True)">
+    <fieldset class="message">
+      <span class="floated" py:if="('L10N_ADD' in req.perm) and show_link">
+        <a href="${ req.href.translate(catalog.id, locale.locale, message.id) }">Translate</a>
+      </span>
+      <table class="message">
+        <tr>
+          <th>Original:</th>
+          <td>${ breaklines(message) }</td>
+        </tr>
+        <tr py:if="message.plural">
+          <th>Plural Form:</th>
+          <td>${breaklines(message.plural)}</td>
+        </tr>
+        <tr py:with="locations=message.locations">
+          <th>${ngettext("Location:", "Locations:", len(locations))}</th>
+          <td><py:for each="location in locations">
+              <a href="$location.href">$location.fname:$location.lineno</a><br/>
+            </py:for></td>
+        </tr>
+        <tr py:if="message.comments">
+          <th>System Comments:</th>
+          <td><py:for each="comment in message.comments"
+            >${ breaklines(comment.comment) }<br/></py:for></td>
+        </tr>
+        <tr py:if="message.flags">
+          <th>Flags:</th><td>${ ', '.join([str(f) for f in message.flags]) }</td>
+        </tr>
+        ${ render_translation_fields(catalog, locale, message) }
+      </table>
+    </fieldset>
+  </py:def>
+
+  <py:def function="render_translation_fields(catalog, locale, message)">
+    <py:with vars="translations=message.translations(locale_id=locale.id)">
+    <tr py:if="translations">
+      <th>${ ngettext('Current Translation:', 'Current Translations:', len(translations)) }</th>
+      <td>
+      <py:for each="translation in translations">
+        <fieldset class="${translation.fuzzy and 'fuzzy' or None}"
+          title="${translation.fuzzy and 'This translation is fuzzy' or None}">
+          <form action="${req.href.translation('mark_fuzzy', translation.id)}" method="get">
+            <span class="floated" py:if="not translation.fuzzy">
+              <input type="hidden" name="current_url" value="location.href"/>
+              <input type="submit" value="Mark as Fuzzy"/>
+            </span>
+          </form>
+          <table class="translation">
+            <tr py:if="translation.comments">
+              <th>Translator Comment:</th>
+              <td><py:for each="tc in translation.comments">
+                <span>$tc.comment</span><br/></py:for>
+              </td>
+            </tr>
+            <tr py:for="ts in translation.strings">
+              <th>Translation<span py:if="len(list(translation.strings))>1" py:strip="">[$ts.index]</span>:</th>
+              <td>${breaklines(ts.string)}</td>
+            </tr>
+            <tr>
+              <th>Author:</th>
+              <td>$translation.sid</td>
+            </tr>
+            <tr>
+              <th>Created:</th>
+              <td>${ pretty_timedelta(translation.created) }</td>
+            </tr>
+            <tr>
+              <th>Votes and Voters:</th>
+              <td><xi:include href="l10n_vote_td_snippet.html"/></td>
+            </tr>
+          </table>
+        </fieldset>
+      </py:for>
+      </td>
+    </tr>
+    </py:with>
+  </py:def>
+
+</div>

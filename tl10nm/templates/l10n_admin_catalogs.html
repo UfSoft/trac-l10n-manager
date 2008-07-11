@@ -1,0 +1,80 @@
+<!--!
+  l10n_admin_locales
+  Created by Pedro Algarvio on 2008-05-08-15
+  Copyright (c) 2008 Pedro Algarvio. All rights reserved.
+-->
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="admin.html" />
+  <head>
+    <title>L10N Manager - Manage Catalogs</title>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+        $("#fpath").suggest();
+      });
+    </script>
+    <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
+  </head>
+  <body>
+    <h2>Manage Catalogs</h2>
+
+    <div class="system-message" py:if="defined('error')">
+      <span class="system-message">$error</span>
+    </div>
+
+    <form action="" name="new_catalog" id="new_catalog" method="post">
+      <fieldset>
+        <legend>Add new catalog template</legend>
+        <table class="side_heads">
+          <tr>
+            <th><label for="fpath">Catalog Path:</label></th>
+            <td><input type="text" name="fpath" id="fpath" size="40"
+                       value="${defined('fpath') and fpath or '/'}"/></td>
+          </tr>
+          <tr>
+            <th>Description</th>
+            <td><textarea name="description" cols="60" rows="6"></textarea></td>
+          </tr>
+        </table>
+        <div class="buttons">
+          <input type="submit" name="add_catalog" value="Add Catalog"/>
+        </div>
+      </fieldset>
+    </form>
+
+    <form action="" id="catalogs_listing" name="new_catalog"
+          method="post" py:if="catalogs">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th class="sel">&nbsp;</th>
+            <th>File Path</th>
+            <th>Revision</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="template in catalogs">
+            <td><input type="checkbox" value="$template.id" name="sel"/></td>
+            <td><a href="${req.href.browser(template.fpath)}">$template.fpath</a></td>
+            <td>
+              <a href="${req.href.browser(template.fpath, rev=template.revision)}"
+                 title="File youngest revision on repository">
+                $template.revision</a>
+                (<a href="${req.href.browser(template.fpath)}"
+                   title="Repository youngest revision">${youngest_rev}</a>)
+            </td>
+            <td>$template.description</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="buttons">
+          <input type="submit" name="delete_selected" value="Remove Selected" />
+      </div>
+    </form>
+  </body>
+</html>

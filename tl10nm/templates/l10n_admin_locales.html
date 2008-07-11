@@ -1,0 +1,101 @@
+<!--!
+  l10n_admin_locales
+  Created by Pedro Algarvio on 2008-05-08-15
+  Copyright (c) 2008 Pedro Algarvio. All rights reserved.
+-->
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="admin.html" />
+  <head>
+    <title>L10N Manager - Manage Catalogs</title>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+        $("#catalog").suggest();
+        $("#locale").suggest("", "locale");
+      });
+    </script>
+    <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
+  </head>
+  <body>
+    <h2>Manage Catalogs</h2>
+
+    <div class="system-message" py:if="defined('error')">
+      <span class="system-message">$error</span>
+    </div>
+
+    <form action="" name="new_locale" id="new_locale" method="post">
+      <fieldset>
+        <legend>Add new locale</legend>
+        <div class="system-message" py:if="not catalog_templates">
+          You must first define a
+          <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
+        </div>
+        <table class="side_heads">
+          <tr>
+            <th><label for="catalog_template">Catalog Template:</label></th>
+            <td>
+              <select name="catalog_template">
+                <option py:for="catalog in catalog_templates"
+                        value="$catalog.id">$catalog.fpath</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th><label for="locale">Locale:</label></th>
+            <td><input type="text" id="locale" name="locale"/></td>
+          </tr>
+          <tr>
+            <th><label for="catalog">Catalog Path:</label></th>
+            <td>
+              <fieldset>
+                <legend>Import Existing Data</legend>
+                <input type="text" id="catalog" name="catalog" size="40"
+                       value="${defined('catalog') and catalog or '/'}"/>
+                <p class="help">If you already have a localized catalog for this
+                  locale in the <a href="${req.href.browser()}">repository</a>,
+                  enter it's path here to import the available translations.</p>
+              </fieldset>
+            </td>
+          </tr>
+        </table>
+        <div class="buttons">
+          <input type="submit" name="add_locale" value="Add Locale"/>
+        </div>
+      </fieldset>
+    </form>
+
+    <hr/>
+    <h2>Available Locales</h2>
+    <form action="" id="catalogs_listing" name="new_catalog"
+          method="post" py:if="locales">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th class="sel">&nbsp;</th>
+            <th>Catalog Template</th>
+            <th>Catalog Description</th>
+            <th>Locale</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="locale in locales">
+            <td><input type="checkbox" value="$locale.id" name="sel"/></td>
+            <td>
+              <a href="${req.href.translations(locale.catalog.id)}">$locale.catalog.fpath</a>
+              (<a href="${req.href.browser(locale.catalog.fpath)}">source</a>)</td>
+            <td>$locale.catalog.description</td>
+            <td><a href="${req.href.translations(locale.catalog.id,
+                                                 locale.locale)}">$locale.locale</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="buttons">
+          <input type="submit" name="delete_selected" value="Remove Selected" />
+      </div>
+    </form>
+  </body>
+</html>
