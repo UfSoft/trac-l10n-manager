@@ -15,23 +15,23 @@
 # =============================================================================
 
 from setuptools import setup, find_packages
-import l10nman
+import tl10nm
 
-setup(name=l10nman.__package__,
-      version=l10nman.__version__,
-      author=l10nman.__author__,
-      author_email=l10nman.__email__,
-      url=l10nman.__url__,
-      download_url='http://python.org/pypi/%s' % l10nman.__package__,
-      description=l10nman.__summary__,
-      long_description=l10nman.__description__,
-      license=l10nman.__license__,
+setup(name=tl10nm.__package__,
+      version=tl10nm.__version__,
+      author=tl10nm.__author__,
+      author_email=tl10nm.__email__,
+      url=tl10nm.__url__,
+      download_url='http://python.org/pypi/%s' % tl10nm.__package__,
+      description=tl10nm.__summary__,
+      long_description=tl10nm.__description__,
+      license=tl10nm.__license__,
       platforms="OS Independent - Anywhere Python and Trac >=0.11 is known to run.",
       install_requires = ['Trac>0.11', 'Genshi>=0.5', 'Babel'],
       keywords = "trac plugin l10n",
       packages=find_packages(),
       package_data={
-        'l10nman': [
+        'tl10nm': [
             'templates/*.html',
             'htdocs/css/*.css',
             'htdocs/img/*.png',
@@ -39,7 +39,7 @@ setup(name=l10nman.__package__,
         ]
       },
       message_extractors = {
-        'l10nman': [
+        'tl10nm': [
             ('**.py', 'python', None),
             ('**/templates/**.html', 'genshi', None),
             ('public/**', 'ignore', None)
@@ -47,7 +47,7 @@ setup(name=l10nman.__package__,
       },
       entry_points = {
         'trac.plugins': [
-            'l10nman = l10nman',
+            'tl10nm = tl10nm',
         ],
         'distutils.commands': [
             'extract = babel.messages.frontend:extract_messages',
