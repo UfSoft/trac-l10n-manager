@@ -1,5 +1,7 @@
 (function($){
 
+    var loading_element = '<h1 class="loading">Just a moment...</h1>';
+
     /*
      * Helper function to hijack the link request and make it through AJAX
      */
@@ -9,15 +11,18 @@
             var output_element = oe || "#contents-" + $(this).attr('tid');
 
             jQuery(this).click( function() {
+                $.blockUI({ message: loading_element });
                 $(output_element).fadeOut("fast");
                 $.ajax({
                     url: this.href,
                     type: 'POST',
                     cache: false,
                     error: function() {
+                        $.unblockUI();
                         $(output_element).append("<em>An error ocurred</em>")
                     },
                     success: function(data) {
+                        $.unblockUI();
                         $(output_element).html(data).fadeIn("fast");
                     }
                 });

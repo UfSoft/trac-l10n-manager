@@ -44,6 +44,7 @@ class L10nModule(Component):
     def process_request(self, req):
         add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         add_script(req, 'tl10nm/js/tl10nm.js')
+        add_script(req, 'tl10nm/js/jquery.blockUI.js')
 
         if req.path_info.startswith('/translations'):
             return self.process_translations_request(req)

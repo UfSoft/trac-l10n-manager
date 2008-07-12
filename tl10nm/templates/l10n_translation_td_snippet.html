@@ -1,0 +1,45 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+  <xi:include href="l10n_macros.html" />
+  <div id="translation-$translation.id">
+  <fieldset class="${translation.fuzzy and 'fuzzy' or None}"
+            title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
+    <a class="floated" py:if="not translation.fuzzy"
+       href="${req.href.translation('mark_fuzzy', translation.id,
+                                    redirect_back=req.path_info + '#translation-$translation.id')}">
+      Mark this as a bad translation
+    </a>
+    <script TYPE="text/javascript">
+      jQuery(document).ready( function($) {
+        $('#translation-$translation.id a.floated').hijax_link_request('#translation-$translation.id');
+      });
+    </script>
+    <span class="floated" py:if="translation.fuzzy">Translation is Fuzzy</span>
+    <table class="translation">
+      <tr py:if="translation.comments">
+        <th>Translator Comment:</th>
+        <td><py:for each="tc in translation.comments">
+          <span>$tc.comment</span><br/></py:for>
+        </td>
+      </tr>
+      <tr py:for="ts in translation.strings">
+        <th>Translation<span py:if="len(list(translation.strings))>1" py:strip="">[$ts.index]</span>:</th>
+        <td>${breaklines(ts.string)}</td>
+      </tr>
+      <tr>
+        <th>Author:</th>
+        <td>$translation.sid</td>
+      </tr>
+      <tr>
+        <th>Created:</th>
+        <td>${ pretty_timedelta(translation.created) }</td>
+      </tr>
+      <tr>
+        <th>Votes and Voters:</th>
+        <td><xi:include href="l10n_vote_td_snippet.html"/></td>
+      </tr>
+    </table>
+  </fieldset>
+  </div>
+</div>

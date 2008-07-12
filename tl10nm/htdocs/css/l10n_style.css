@@ -10,9 +10,7 @@ table.side_heads th {
 
 p.help tt { font-weight: bold; }
 
-input.loading {
-  background: url("../../common/loading.gif") right center no-repeat;
-}
+.loading { background: url("../../common/loading.gif") right center no-repeat; }
 
 .translations h2 {
   text-align: center;
