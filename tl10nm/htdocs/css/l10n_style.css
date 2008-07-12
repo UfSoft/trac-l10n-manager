@@ -1,6 +1,6 @@
 .narrow_content { padding-left: 20px; padding-right: 20px; }
 
-fieldset.fuzzy { background-color: red; }
+fieldset.fuzzy { background-color: #ffc1c1; }
 
 table.side_heads th {
   text-align: right;

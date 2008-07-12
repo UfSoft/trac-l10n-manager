@@ -99,6 +99,7 @@ class L10nModule(Component):
         data = {'translation': translation}
 
         sid_voted = translation.votes.filter_by(sid=req.authname).first()
+        html_template = 'l10n_vote_td_snippet.html'
 
         if action == 'remove_vote':
             if not sid_voted:
@@ -131,15 +132,17 @@ class L10nModule(Component):
                     sid_voted.vote = vote
                     Session.commit()
         elif action == 'mark_fuzzy':
-            pass
+            translation.fuzzy = True
+            Session.commit()
+            html_template = 'l10n_translation_td_snippet.html'
         else:
             raise ResourceNotFound("Bad URL")
 
         if ajax_request:
             # Return a partial render
             chrome = Chrome(self.env)
-            output = chrome.render_template(req, 'l10n_vote_td_snippet.html',
-                                            data, fragment=True)
+            output = chrome.render_template(req, html_template, data,
+                                            fragment=True)
             # Don't forget to include the form token to keep trac happy
             if req.form_token:
                 output |= chrome._add_form_token(req.form_token)

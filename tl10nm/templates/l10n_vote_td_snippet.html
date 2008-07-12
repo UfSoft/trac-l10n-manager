@@ -28,7 +28,7 @@
       <tr py:with="votes=translation.votes_count">
         <th>${votes &gt; 0 and '+%d' % votes or votes}</th>
         <td>
-          ($positive_voters_count - $negative_voters_count)
+          <span py:if="votes">($positive_voters_count - $negative_voters_count)</span>
           <span class="error" py:if="error">$error</span>
         </td>
       </tr>

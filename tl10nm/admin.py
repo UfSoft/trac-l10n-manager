@@ -256,6 +256,7 @@ class L10NAdminModule(Component):
         errors = []
         catalog_template_id = req.args.get('catalog_template', None)
         locale = req.args.get('locale')
+
         def add_error(error):
             errors.append(error)
             data['error'] = tag.ul(*[tag.li(e) for e in errors if e])
@@ -273,6 +274,12 @@ class L10NAdminModule(Component):
 
         num_plurals = get_plural(locale=locale).num_plurals
 
+        _locale = Session.query(Locale).filter_by(locale=locale,
+                                                  catalog_id=catalog.id).first()
+        if _locale:
+            data['locale'] = _locale
+            return add_error(_("Locale Exists Already"))
+
         locale = Locale(catalog, locale, num_plurals)
         catalog.locales.append(locale)
 
@@ -282,6 +289,8 @@ class L10NAdminModule(Component):
 
         # Are we importing existing data
         locale_catalog_path = req.args.get('catalog')
+        include_fuzzy = req.args.get('include_fuzzy') == '1'
+
         if not locale_catalog_path:
             return data
 
@@ -299,7 +308,9 @@ class L10NAdminModule(Component):
                                 locale=locale))
         for msg in messages[1:]:
             should_break = False
-            if isinstance(msg.id, (list, tuple)):
+            if 'fuzzy' in msg.flags and not include_fuzzy:
+                should_break = True
+            elif isinstance(msg.id, (list, tuple)):
                 if len([s for s in list(msg.string) if s]) != len(msg.string):
                     # if any of the plurals is empty, don't add the translation
                     # we don't want incomplete translations
@@ -312,6 +323,7 @@ class L10NAdminModule(Component):
                     should_break = True
                 string, plural = msg.id, ''
                 strings = [msg.string]
+
 
             if should_break:
                 continue # Let's go to the next message
@@ -328,7 +340,8 @@ class L10NAdminModule(Component):
             else:
                 strings = msg.string
 
-            translation = Translation(locale, msgid, req.authname)
+            translation = Translation(locale, msgid, req.authname,
+                                      fuzzy='fuzzy' in msg.flags)
             for comment in msg.user_comments:
                 translation.comments.append(TranslationComment(translation,
                                                                comment))
@@ -343,9 +356,6 @@ class L10NAdminModule(Component):
 
             locale.translations.append(translation)
         Session.commit()
-
-#        print 123, catalog.messages.count()
-#        print 123, locale.translations.count()
 
         add_notice(req, _("Data Imported."))
         return data

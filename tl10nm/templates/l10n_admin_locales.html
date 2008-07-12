@@ -55,9 +55,12 @@
                 <legend>Import Existing Data</legend>
                 <input type="text" id="catalog" name="catalog" size="40"
                        value="${defined('catalog') and catalog or '/'}"/>
+                <input type="checkbox" value="1" name="include_fuzzy">
+                  Inlcude fuzzy translations</input>
                 <p class="help">If you already have a localized catalog for this
                   locale in the <a href="${req.href.browser()}">repository</a>,
                   enter it's path here to import the available translations.</p>
+
               </fieldset>
             </td>
           </tr>

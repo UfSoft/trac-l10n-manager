@@ -60,13 +60,6 @@ locale_table = sqla.Table('l10n_locales', metadata,
     sqla.UniqueConstraint('locale', 'catalog_id')
 )
 
-#locale_stats_table = sqla.Table('l10n_locale_stats', metadata,
-#    sqla.Column('locale_id', None, sqla.ForeignKey('l10n_locales.id'),
-#                primary_key=True),
-#    sqla.Column
-#)
-
-
 translation_table = sqla.Table('l10n_translations', metadata,
     sqla.Column('id', sqla.Integer, primary_key=True),
     sqla.Column('locale_id', None, sqla.ForeignKey('l10n_locales.id')),
@@ -171,14 +164,13 @@ class Locale(object):
         return self.translated * 100.0 / self.catalog.messages.count()
     @property
     def untranslated(self):
-        return self.catalog.messages.count() - self.translated
+        return self.catalog.messages.count() - self.translated - self.fuzzy
     @property
     def untranslated_percent(self):
         return self.untranslated * 100.0 / self.catalog.messages.count()
     @property
     def fuzzy(self):
         return self.translations.filter_by(fuzzy=True).count()
-        return 5
     @property
     def fuzzy_percent(self):
         return self.fuzzy * 100.0 / self.catalog.messages.count()
@@ -253,12 +245,12 @@ mapper(MsgIDComment, msgid_comment_table)
 mapper(MsgIDFlag, msgid_flag_table)
 
 mapper(Translation, translation_table, properties=dict(
-    strings = relation(TranslationString, backref='translation', #lazy=False,
+    strings = relation(TranslationString, backref='translation',
                        cascade='all, delete, delete-orphan'),
-    comments = relation(TranslationComment, backref='translation', #lazy=False,
+    comments = relation(TranslationComment, backref='translation',
                         cascade='all, delete, delete-orphan'),
-    votes = dynamic_loader(TranslationVote, backref='translation'),
-#    votes_count = sqla.select([sqla.func.sum(translation_table.votes)])
+    votes = dynamic_loader(TranslationVote, backref='translation',
+                           cascade='all, delete, delete-orphan')
 ))
 
 mapper(TranslationString, translation_string_table)
