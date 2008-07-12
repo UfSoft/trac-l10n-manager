@@ -3,7 +3,7 @@
     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
   <xi:include href="l10n_macros.html" />
   <div id="translation-$translation.id">
-  <fieldset class="${translation.fuzzy and 'fuzzy' or None}"
+  <fieldset class="${translation.fuzzy and 'fuzzy' or 'notfuzzy'}"
             title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
     <a class="floated" py:if="not translation.fuzzy"
        href="${req.href.translation('mark_fuzzy', translation.id,
