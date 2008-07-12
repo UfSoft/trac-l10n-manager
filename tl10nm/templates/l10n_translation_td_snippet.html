@@ -12,7 +12,10 @@
     </a>
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
-        $('#translation-$translation.id a.floated').hijax_link_request('#translation-$translation.id');
+        $('#translation-$translation.id a.floated').hijax_link_request({
+          output: '#translation-$translation.id',
+          progress: true
+        });
       });
     </script>
     <span class="floated" py:if="translation.fuzzy">Translation is Fuzzy</span>

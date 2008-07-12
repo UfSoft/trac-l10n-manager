@@ -8,12 +8,12 @@
              positive_voters_count=positive_voters.count();
              negative_voters_count=negative_voters.count()">
     <table class="translation_votes">
-      <tr py:with="voted=voter and voter.vote==1">
+      <tr py:with="voted=voter and voter.vote==1; strip_link='L10N_ADD' not in req.perm or voted">
         <th>
           <a href="${req.href.translation('vote_up', translation.id, redirect_back=req.path_info)}"
-             title="Vote Up" class="hijax" tid="$translation.id"
-             py:strip="voted or 'L10N_ADD' not in req.perm">
-            <img src="${ req.href.chrome(voted and 'tl10nm/img/upvoted.png' or 'tl10nm/img/upvote.png')}"/>
+             title="Vote Up" class="hijax" tid="$translation.id" py:strip="strip_link">
+            <img src="${ req.href.chrome((voted or strip_link) and 'tl10nm/img/upvoted.png' or
+                                         'tl10nm/img/upvote.png')}"/>
           </a>
         </th>
         <td><span>
@@ -28,16 +28,18 @@
       <tr py:with="votes=translation.votes_count">
         <th>${votes &gt; 0 and '+%d' % votes or votes}</th>
         <td>
-          <span py:if="votes">($positive_voters_count - $negative_voters_count)</span>
+          <span py:if="positive_voters_count or negative_voters_count">
+            ($positive_voters_count - $negative_voters_count)
+          </span>
           <span class="error" py:if="error">$error</span>
         </td>
       </tr>
-      <tr py:with="voted=voter and voter.vote==-1">
+      <tr py:with="voted=voter and voter.vote==-1; strip_link='L10N_ADD' not in req.perm or voted">
         <th>
           <a href="${req.href.translation('vote_down', translation.id, redirect_back=req.path_info)}"
-             title="Vote Down" class="hijax" tid="$translation.id"
-             py:strip="voted or 'L10N_ADD' not in req.perm">
-            <img src="${ req.href.chrome(voted and 'tl10nm/img/downvoted.png' or 'tl10nm/img/downvote.png')}"/>
+             title="Vote Down" class="hijax" tid="$translation.id" py:strip="strip_link">
+            <img src="${ req.href.chrome((voted or strip_link) and 'tl10nm/img/downvoted.png' or
+                                         'tl10nm/img/downvote.png')}"/>
           </a>
         </th>
         <td>

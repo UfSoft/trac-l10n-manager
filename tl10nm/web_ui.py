@@ -31,17 +31,20 @@ class L10nModule(Component):
         return 'translations'
 
     def get_navigation_items(self, req):
-        yield ('mainnav', 'translations',
-               tag.a('Translations', href=req.href.translations()))
-
-    # IRequestFilter methods
+        if 'L10N_VIEW' in req.perm:
+            yield ('mainnav', 'translations',
+                   tag.a('Translations', href=req.href.translations()))
 
     # IRequestHandler methods
     def match_request(self, req):
-        return req.path_info.startswith('/translate') or \
-            req.path_info.startswith('/translation')
+        match = re.match(r'^/(translate|translation|translations)+(?:/(.*))?$',
+                         req.path_info)
+        if match:
+            return True
+        return False
 
     def process_request(self, req):
+        req.perm.require('L10N_VIEW')
         add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         add_script(req, 'tl10nm/js/tl10nm.js')
         add_script(req, 'tl10nm/js/jquery.blockUI.js')

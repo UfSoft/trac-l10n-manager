@@ -30,10 +30,12 @@ class L10NAdminModule(Component):
 
     # IAdminPageProvider methods
     def get_admin_panels(self, req):
-        yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
-        yield ('translations', 'L10N Manager', 'locales', _('Locales'))
+        if 'L10N_ADMIN' in req.perm:
+            yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
+            yield ('translations', 'L10N Manager', 'locales', _('Locales'))
 
     def render_admin_panel(self, req, cat, page, path_info):
+        req.perm.require('L10N_ADMIN')
         add_script(req, 'tl10nm/js/autocomplete.js')
 
         if req.get_header('X-Requested-With'):

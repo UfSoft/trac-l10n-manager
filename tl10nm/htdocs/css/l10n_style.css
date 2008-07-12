@@ -11,6 +11,7 @@ table.side_heads th {
 p.help tt { font-weight: bold; }
 
 .loading { background: url("../../common/loading.gif") right center no-repeat; }
+.progress { background: url("../../tl10nm/img/ajax-loader.gif") center center no-repeat; }
 
 .translations h2 {
   text-align: center;

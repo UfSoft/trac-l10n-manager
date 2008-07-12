@@ -12,5 +12,5 @@ class L10nPermissions(Component):
 
     # IPermissionRequestor
     def get_permission_actions(self):
-        actions = ['L10N_ADD', 'L10N_DELETE', 'L10N_MODERATE']
+        actions = ['L10N_VIEW', 'L10N_ADD', 'L10N_DELETE', 'L10N_MODERATE']
         return actions + [('L10N_ADMIN', actions)]
