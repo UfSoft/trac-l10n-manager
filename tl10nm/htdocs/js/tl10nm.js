@@ -34,7 +34,7 @@
                         $(output_element).html(data).fadeIn("fast");
                     }
                 });
-                // Don't send request twice, first was by the ajax call
+                // Don't send request twice, the first was by the ajax call
                 return false;
             });
         });
