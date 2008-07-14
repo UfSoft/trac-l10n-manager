@@ -36,7 +36,7 @@
             </py:for></td>
         </tr>
         <tr py:if="message.comments">
-          <th>System Comments:</th>
+          <th>System Comments ${ help_link('system_comments')} :</th>
           <td><py:for each="comment in message.comments"
             >${ breaklines(comment.comment) }<br/></py:for></td>
         </tr>
@@ -61,4 +61,9 @@
     </py:with>
   </py:def>
 
+  <py:def function="help_link(help_about, aditional_classes='')">
+    <a href="${req.href.l10nhelp(help_about)}" class="jTip $aditional_classes" title="Click for help">
+      <img src="${req.href.chrome('tl10nm/img/info.png')}"/>
+    </a>
+  </py:def>
 </div>

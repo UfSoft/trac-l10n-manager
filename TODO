@@ -1,0 +1,6 @@
+Some stuff to be implemented
+============================
+
+* List translations by translator.
+* Gather the translations made for a locale and serve a po file with them.
+

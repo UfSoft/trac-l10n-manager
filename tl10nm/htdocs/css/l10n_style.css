@@ -46,7 +46,7 @@ table.translations th, table.message th {
   padding-right: 5px;
 }
 
-.floated { float: right; white-space: nowrap; }
+.floated { float: right; white-space: nowrap; padding: 3px;}
 
 
 /* Styles for the catalogs list */
@@ -85,4 +85,92 @@ table.translation_votes td span.error{
 }
 a.hijax { text-decoration: none; border: 0; }
 a.hijax img { border: none; }
+
+/* ---------->>> jtip <<<---------------------------------------------------------------*/
+
+#JT_arrow_left{
+    background-image: url(../../tl10nm/img/arrow_left.gif);
+    background-repeat: no-repeat;
+    background-position: left top;
+    position: absolute;
+    z-index:101;
+    left:-12px;
+    height:23px;
+    width:10px;
+    top:-3px;
+}
+
+#JT_arrow_right{
+    background-image: url(../../tl10nm/img/arrow_right.gif);
+    background-repeat: no-repeat;
+    background-position: left top;
+    position: absolute;
+    z-index:101;
+    height:23px;
+    width:11px;
+    top:-2px;
+}
+
+#JT {
+    position: absolute;
+    z-index:100;
+    border: 2px solid #CCCCCC;
+    background-color: #fff;
+}
+
+#JT_copy{
+    padding:10px 10px 10px 10px;
+    color:#333333;
+}
+
+.JT_loader{
+    background-image: url("../../tl10nm/img/ajax-loader.gif");
+    background-repeat: no-repeat;
+    background-position: center center;
+    width:100%;
+    height:12px;
+}
+
+#JT_close_left{
+    background-color: #CCCCCC;
+    text-align: left;
+    padding-left: 8px;
+    padding-bottom: 5px;
+    padding-top: 2px;
+    font-weight:bold;
+}
+
+#JT_close_right{
+    background-color: #CCCCCC;
+    text-align: left;
+    padding-left: 8px;
+    padding-bottom: 5px;
+    padding-top: 2px;
+    font-weight:bold;
+}
+
+#JT_copy p{
+margin:3px 0;
+}
+
+#JT_copy img{
+    padding: 1px;
+    border: 1px solid #CCCCCC;
+}
+
+#JT_follow_tooltip {
+    border: 2px solid #ccc;
+    background-color: #ccc;
+    text-align: center;
+    font-size: 80%;
+}
+
+.jTip{
+  cursor:help;
+  border: none;
+  text-decoration: none;
+  vertical-align: middle;
+  text-align: center;
+}
+
 

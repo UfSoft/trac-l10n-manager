@@ -5,14 +5,15 @@
   <div id="translation-$translation.id">
   <fieldset class="${translation.fuzzy and 'fuzzy' or 'notfuzzy'}"
             title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
-    <a class="floated" py:if="not translation.fuzzy"
+    <a class="floated hijax" py:if="not translation.fuzzy"
        href="${req.href.translation('mark_fuzzy', translation.id,
                                     redirect_back=req.path_info + '#translation-$translation.id')}">
       Mark this as a bad translation
     </a>
+    ${ help_link('fuzzy_translation', 'floated')}
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
-        $('#translation-$translation.id a.floated').hijax_link_request({
+        $('#translation-$translation.id a.hijax').hijax_link_request({
           output: '#translation-$translation.id',
           progress: true
         });

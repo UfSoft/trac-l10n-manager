@@ -9,7 +9,7 @@ import sqlalchemy as sqla
 from sqlalchemy.orm import mapper, relation, dynamic_loader, backref, synonym
 from sqlalchemy.orm import eagerload
 
-from tsab import session
+from tracext.sa import session
 
 name = 'trac-l10nmanager'
 version = 1

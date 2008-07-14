@@ -36,7 +36,13 @@ class L10NAdminModule(Component):
 
     def render_admin_panel(self, req, cat, page, path_info):
         req.perm.require('L10N_ADMIN')
+        add_stylesheet(req, 'tl10nm/css/flora.dialog.css')
+        add_stylesheet(req, 'tl10nm/css/flora.resizable.css')
         add_script(req, 'tl10nm/js/autocomplete.js')
+        add_script(req, 'tl10nm/js/ui.core.js')
+        add_script(req, 'tl10nm/js/ui.draggable.js')
+        add_script(req, 'tl10nm/js/ui.resizable.js')
+        add_script(req, 'tl10nm/js/ui.dialog.js')
 
         if req.get_header('X-Requested-With'):
             # AJAX request

@@ -14,7 +14,7 @@ from trac.web.chrome import add_link, add_stylesheet, add_script, add_ctxtnav
 from trac.web.chrome import add_warning, add_notice, Chrome
 from trac.web.main import RequestDone
 
-from tsab import session
+from tracext.sa import session
 
 from tl10nm.model import *
 
@@ -47,6 +47,7 @@ class L10nModule(Component):
         req.perm.require('L10N_VIEW')
         add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         add_script(req, 'tl10nm/js/tl10nm.js')
+        add_script(req, 'tl10nm/js/jquery.jtip.js')
         add_script(req, 'tl10nm/js/jquery.blockUI.js')
 
         if req.path_info.startswith('/translations'):
@@ -156,7 +157,7 @@ class L10nModule(Component):
             req.redirect(redirect_back)
 
     def process_translate_request(self, req):
-        match = re.match(r'^/translations'
+        match = re.match(r'^/translate'
                          r'(?:/([0-9]+)?)?'         # catalog id
                          r'(?:/([A-Za-z\-_]+)?)?'   # locale name
                          r'(?:/([0-9]+)?)?',        # msgid id
@@ -175,12 +176,8 @@ class L10nModule(Component):
 
     # Internal Methods
     def _translate_msgid(self, req, catalog_id, locale_name, msgid_id):
-        print req.__dict__.keys()
-        print req.environ
         Session = session(self.env)
 
-        self.env.db = Session # keep db connection opened as long as possible
-        options = eagerload('translations')
         locale = Session.query(Locale).filter_by(locale=locale_name,
                                                  catalog_id=catalog_id).first()
         message = Session.query(MsgID).get(msgid_id)

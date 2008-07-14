@@ -12,12 +12,12 @@ __summary__     = 'Trac plugin to handle message catalogs'
 __description__ = 'Trac plugin to handle message catalogs'
 
 # -------------------------- import modules ------------------------------------
-import admin, resources, web_ui, perm
+import admin, resources, web_ui, perm, help
 
 # -------------------- Database Init/Upgrade Code ------------------------------
 from trac.core import *
 from trac.env import IEnvironmentSetupParticipant
-from tsab import engine
+from tracext.sa import engine
 
 from tl10nm import model
 
