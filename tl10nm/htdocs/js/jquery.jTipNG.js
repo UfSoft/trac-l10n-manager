@@ -7,21 +7,24 @@
 
 (function($) {
 
-    $.fn.jTip = function(params) {
+    $.fn.jTipNG = function(params) {
 
-        params = params || {};
-        ajax_params = $.extend({}, $.fn.jTip.ajax_params, params.ajax)
-        messages = $.extend({}, $.fn.jTip.messages, params.messages)
-        op = $.extend({}, $.fn.jTip.defaults, params)
+        var params = params || {};
+        var ajax_params = $.extend({}, $.fn.jTipNG.ajax_params, params.ajax)
+        var messages = $.extend({}, $.fn.jTipNG.messages, params.messages)
+        var op = $.extend({}, $.fn.jTipNG.defaults, params)
 
         return this.each( function() {
+            var main_div_id = '#'+op.divIdPrefix;
+            // Make sure elements are jTip'ed only once
+            if ( $.data(this, 'jTipped') ) { return /* break out of each loop */ };
+            // Mark element as hijaxed
+            $.data(this, 'jTipped', true);
 
             if ( op.trigger == "hover" ) {
                 $(this).bind("mouseover", function(e) {
-                    //console.log(e, e.currentTarget == this);
                     blockEvents(e);
-//                    e.preventDefault();
-                    JT_show(this);
+                    JT_show(this, op);
                     return false;
                 });
                 $(this).bind("mousemove", function(e) {
@@ -30,7 +33,7 @@
                 });
                 $(this).bind("mouseout", function(e) {
                     blockEvents(e);
-                    $('#'+op.divIdPrefix).remove();
+                    $(main_div_id).remove();
                     return false;
                 });
                 if ( ! op.follow_tooltip ) {
@@ -38,58 +41,55 @@
                 };
             } else if ( op.trigger == "click" ) {
                 $(this).bind("click", function() {
-//                    JT_show(this, null);
+                    JT_show(this, op);
                     $(document).bind("click", function() {
-                        $('#'+op.divIdPrefix).remove();
+                        $(main_div_id).remove();
                     });
-//                    console.log(6666, this);
                     return false;
                 });
-
-                $(this).bind("mousedown", function(e) {
-//                    console.log(e, e.currentTarget == this);
-                    e.preventDefault();
-                    JT_show(this);
-                    return false;
-                });
-//                $(this).bind("mousedown", function(e) {
-//                    return false;
-//                });
             };
         });
     };
 
 
-    $.fn.jTip.messages = {
+    $.fn.jTipNG.messages = {
         followTooltip: 'Follow Tooltip',
         ajaxErrorMessage: 'Ajax request to server failed',
         errorTitle: 'ERROR'
     };
-    $.fn.jTip.ajax_params = { type: 'GET', cache: true, dataType: 'html', async: false };
-    $.fn.jTip.defaults = {
+    $.fn.jTipNG.ajax_params = { type: 'GET', cache: true, dataType: 'html', async: true };
+    $.fn.jTipNG.defaults = {
         titleElement: 'h2',   // Element on response to be used as tooltip title
         width: 300,           // Base tooltip width
         trigger: 'click',     // click or hover
         divIdPrefix: 'JT',    // Div ID prefix
         followTooltip: false, // Include link to follow the tooltips - for click trigger
         autoResize: true,     // Resize if content is bigger than default width
-        ajax: $.fn.jTip.ajax_params,
-        messages: $.fn.jTip.messages,
+        ajax: $.fn.jTipNG.ajax_params,
+        messages: $.fn.jTipNG.messages,
     };
 
-    function JT_show(el){
+    function JT_show(el, op){
+        var ajax_params = op.ajax;
+        var message = op.messages;
 
         ajax_params.url = el.href;
         ajax_params.error = JT_show_ajax_error
         ajax_params.success = JT_insert_html
 
-        // If there's already a tooltip open, first close it
-        if ( $('#'+op.divIdPrefix).length >= 1 ) { $('#'+op.divIdPrefix).remove() };
-
         var de = document.documentElement;
         var w = self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
         var hasArea = w - getAbsoluteLeft(el);
         var clickElementy = getAbsoluteTop(el) - 3; //set y position
+
+        var show_on_right = hasArea>((op.width*1)+75) && true || false;
+        var main_div_id = '#'+op.divIdPrefix;
+        var title_div = "#"+op.divIdPrefix + (show_on_right && "_close_left" || "_close_right");
+        var copy_div_id = '#'+op.divIdPrefix+'_copy';
+        var arrow_div_id = "#"+op.divIdPrefix + (show_on_right && "_arrow_left" || "_arrow_right");
+
+        // If there's already a tooltip open, first close it
+        if ( $(main_div_id).length >= 1 ) { $(main_div_id).remove() };
 
         if ( op.followTooltip && op.trigger == 'click' ) {
             $(el).bind("click", function() {
@@ -97,12 +97,6 @@
             });
             $(el).css('cursor', 'pointer');
         }
-
-        show_on_right = hasArea>((op.width*1)+75) && true || false;
-        title_div = "#"+op.divIdPrefix + (show_on_right && "_close_left" || "_close_right")
-        main_div_id = '#'+op.divIdPrefix;
-        copy_div_id = '#'+op.divIdPrefix+'_copy';
-        arrow_div_id = "#"+op.divIdPrefix + (show_on_right && "_arrow_left" || "_arrow_right")
 
 
         function JT_insert_html(html) {
@@ -124,11 +118,10 @@
                     // resizing issues, we have to do this loop :\
                     var foo = false;
                     while ( !foo ) {
-                       foo = resize(show_on_right, clickElementx, w);
-                       //console.log('Waiting for true value');
+                       foo = resize();
                     };
                 } else {
-                    retval = resize(show_on_right, clickElementx, w);
+                    retval = resize();
                 }
             };
         };
@@ -159,94 +152,92 @@
         $(main_div_id).css({left: clickElementx, top: clickElementy});
         $(main_div_id).show();
         $.ajax(ajax_params);
-    }
+//        $(document).ajaxSend(function() {
+//            $(main_div_id).remove()
+//        });
 
-    function getAbsoluteLeft(o) {
-        // Get an object left position from the upper left viewport corner
-        oLeft = o.offsetLeft            // Get left position from the parent object
-        while(o.offsetParent!=null) {   // Parse the parent hierarchy up to the document element
-            oParent = o.offsetParent    // Get parent object reference
-            oLeft += oParent.offsetLeft // Add parent left position
-            o = oParent
-        }
-        return oLeft
-    }
-
-    function getAbsoluteTop(o) {
-        // Get an object top position from the upper left viewport corner
-        oTop = o.offsetTop              // Get top position from the parent object
-        while( o.offsetParent!=null ) { // Parse the parent hierarchy up to the document element
-            oParent = o.offsetParent    // Get parent object reference
-            oTop += oParent.offsetTop   // Add parent top position
-            o = oParent
-        }
-        return oTop
-    };
-
-    function resize(show_on_right, clickElementx, w) {
-        //console.log('Resizing', show_on_right, clickElementx, w);
-        resize_value = 0;
-        widest_element = null;
-        //console.log(123, $(':visible', copy_div_id));
-        $(':visible', copy_div_id).each(function() {
-            if ( this.offsetWidth == 0 ) {
-                //console.log('Breaking out of loop');
-                return false;
+        function getAbsoluteLeft(o) {
+            // Get an object left position from the upper left viewport corner
+            oLeft = o.offsetLeft            // Get left position from the parent object
+            while(o.offsetParent!=null) {   // Parse the parent hierarchy up to the document element
+                oParent = o.offsetParent    // Get parent object reference
+                oLeft += oParent.offsetLeft // Add parent left position
+                o = oParent
             }
-            // Grab element's overflow property
-            old_elem_overflow = $(this).css('overflow');
-            // Set it to hiden so we can know how much of it's width was hidden
-            $(this).css('overflow', 'hidden');
-//            console.log(this, this.scrollWidth, this.offsetWidth);
-            if (  this.scrollWidth > this.offsetWidth ) {
-                // this.scrollWidth and this.offsetWidth do not match
-                // meaning that a portion was hidden.
-                hidden_pixels = this.scrollWidth - this.offsetWidth;
-                if ( hidden_pixels > resize_value ) {
-                    // new value is bigger than the older one, keep the new one
-                    resize_value = hidden_pixels;
-                    // Store widest element
-                    widest_element = this;
-                };
-            };
-            //console.log('Current resize value', resize_value);
-            // Restore overflow property
-            $(this).css('overflow', old_elem_overflow);
-        });
-        if ( resize_value != 0 ) {
-            // resize_value changed so, let's apply it
-            new_width = op.width*1+resize_value;
-            if ( show_on_right ) {
-                if ( clickElementx + new_width > w ) {
-                    // Won't fit screen
-                    new_width -= new_width - (w - clickElementx - 40);
-                    $(widest_element).css('overflow-x', 'scroll');
-                    $(main_div_id).animate({'width': new_width}, 'fast');
-                } else {
-                    $(main_div_id).animate({'width': op.width*1+resize_value}, 'fast');
-                };
-            } else {
-                new_left = clickElementx - resize_value;
-//                console.log('New Left', new_left, 'New Width', new_width);
-                if ( new_left < 0 ) {
-                    // Too Wide
-                    $(widest_element).css('overflow-x', 'scroll');
-                    new_width = new_width + new_left - 20;
-                    new_left = 20;
-                }
-                $(main_div_id).animate(
-                   {'left': new_left, 'width': new_width},
-                   {duration: 'fast', queue: false}
-                );
-                $(arrow_div_id).animate(
-                  {'left': new_width+1},
-                  {duration: 'fast', queue: false}
-                );
-            };
-//            console.log('Applying the resize value', new_width);
+            return oLeft
         }
-        return true;
-    };
+
+        function getAbsoluteTop(o) {
+            // Get an object top position from the upper left viewport corner
+            oTop = o.offsetTop              // Get top position from the parent object
+            while( o.offsetParent!=null ) { // Parse the parent hierarchy up to the document element
+                oParent = o.offsetParent    // Get parent object reference
+                oTop += oParent.offsetTop   // Add parent top position
+                o = oParent
+            }
+            return oTop
+        };
+
+        function resize() {
+            resize_value = 0;
+            widest_element = null;
+            $(':visible', copy_div_id).each(function() {
+                if ( this.offsetWidth == 0 ) {
+                    return false;
+                }
+                // Grab element's overflow property
+                old_elem_overflow = $(this).css('overflow');
+                // Set it to hiden so we can know how much of it's width was hidden
+                $(this).css('overflow', 'hidden');
+                if (  this.scrollWidth > this.offsetWidth ) {
+                    // this.scrollWidth and this.offsetWidth do not match
+                    // meaning that a portion was hidden.
+                    hidden_pixels = this.scrollWidth - this.offsetWidth;
+                    if ( hidden_pixels > resize_value ) {
+                        // new value is bigger than the older one, keep the new one
+                        resize_value = hidden_pixels;
+                        // Store widest element
+                        widest_element = this;
+                    };
+                };
+                // Restore overflow property
+                $(this).css('overflow', old_elem_overflow);
+            });
+            if ( resize_value != 0 ) {
+                // resize_value changed so, let's apply it
+                new_width = op.width*1+resize_value;
+                if ( show_on_right ) {
+                    if ( clickElementx + new_width > w ) {
+                        // Won't fit screen
+                        new_width -= new_width - (w - clickElementx - 40);
+                        $(widest_element).css('overflow-x', 'scroll');
+                        $(main_div_id).animate({'width': new_width}, 'fast');
+                    } else {
+                        $(main_div_id).animate({'width': op.width*1+resize_value}, 'fast');
+                    };
+                } else {
+                    new_left = clickElementx - resize_value;
+                    if ( new_left < 0 ) {
+                        // Too Wide
+                        $(widest_element).css('overflow-x', 'scroll');
+                        new_width = new_width + new_left - 20;
+                        new_left = 20;
+                    }
+                    $(main_div_id).animate(
+                       {'left': new_left, 'width': new_width},
+                       {duration: 'fast', queue: false}
+                    );
+                    $(arrow_div_id).animate(
+                      {'left': new_width+1},
+                      {duration: 'fast', queue: false}
+                    );
+                };
+            }
+            return true;
+        };
+    }
+
+
 
      function blockEvents(evt) {
          if ( evt.target ) {
