@@ -10,9 +10,9 @@
     $.fn.jTipNG = function(params) {
 
         var params = params || {};
-        var ajax_params = $.extend({}, $.fn.jTipNG.ajax_params, params.ajax)
-        var messages = $.extend({}, $.fn.jTipNG.messages, params.messages)
-        var op = $.extend({}, $.fn.jTipNG.defaults, params)
+        var ajax_params = $.extend({}, $.fn.jTipNG.ajax_params, params.ajax);
+        var messages = $.extend({}, $.fn.jTipNG.messages, params.messages);
+        var op = $.extend({}, $.fn.jTipNG.defaults, params);
 
         return this.each( function() {
             var main_div_id = '#'+op.divIdPrefix;
@@ -57,7 +57,8 @@
         ajaxErrorMessage: 'Ajax request to server failed',
         errorTitle: 'ERROR'
     };
-    $.fn.jTipNG.ajax_params = { type: 'GET', cache: true, dataType: 'html', async: true };
+    $.fn.jTipNG.ajax_params = { type: 'GET', cache: true,
+                                dataType: 'html', async: true };
     $.fn.jTipNG.defaults = {
         titleElement: 'h2',   // Element on response to be used as tooltip title
         width: 300,           // Base tooltip width
@@ -71,11 +72,11 @@
 
     function JT_show(el, op){
         var ajax_params = op.ajax;
-        var message = op.messages;
+        var messages = op.messages;
 
         ajax_params.url = el.href;
-        ajax_params.error = JT_show_ajax_error
-        ajax_params.success = JT_insert_html
+        ajax_params.error = function() { JT_show_ajax_error(messages) };
+        ajax_params.success = JT_insert_html;
 
         var de = document.documentElement;
         var w = self.innerWidth || (de&&de.clientWidth) || document.body.clientWidth;
@@ -126,8 +127,8 @@
             };
         };
 
-        function JT_show_ajax_error() {
-            $(title_div).html(messages.errorTitle).slideDown("fast")
+        function JT_show_ajax_error(messages) {
+            $($(title_div).html(messages.errorTitle)).slideDown("fast")
             $(copy_div_id).html('<p>'+messages.ajaxErrorMessage+'</p>')
         }
 
