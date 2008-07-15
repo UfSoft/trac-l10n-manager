@@ -152,9 +152,6 @@
         $(main_div_id).css({left: clickElementx, top: clickElementy});
         $(main_div_id).show();
         $.ajax(ajax_params);
-//        $(document).ajaxSend(function() {
-//            $(main_div_id).remove()
-//        });
 
         function getAbsoluteLeft(o) {
             // Get an object left position from the upper left viewport corner
@@ -179,20 +176,20 @@
         };
 
         function resize() {
-            resize_value = 0;
-            widest_element = null;
+            var resize_value = 0;
+            var widest_element;
             $(':visible', copy_div_id).each(function() {
                 if ( this.offsetWidth == 0 ) {
                     return false;
                 }
                 // Grab element's overflow property
-                old_elem_overflow = $(this).css('overflow');
+                var old_elem_overflow = $(this).css('overflow');
                 // Set it to hiden so we can know how much of it's width was hidden
                 $(this).css('overflow', 'hidden');
                 if (  this.scrollWidth > this.offsetWidth ) {
                     // this.scrollWidth and this.offsetWidth do not match
                     // meaning that a portion was hidden.
-                    hidden_pixels = this.scrollWidth - this.offsetWidth;
+                    var hidden_pixels = this.scrollWidth - this.offsetWidth;
                     if ( hidden_pixels > resize_value ) {
                         // new value is bigger than the older one, keep the new one
                         resize_value = hidden_pixels;
@@ -205,7 +202,7 @@
             });
             if ( resize_value != 0 ) {
                 // resize_value changed so, let's apply it
-                new_width = op.width*1+resize_value;
+                var new_width = op.width*1+resize_value;
                 if ( show_on_right ) {
                     if ( clickElementx + new_width > w ) {
                         // Won't fit screen
@@ -213,10 +210,10 @@
                         $(widest_element).css('overflow-x', 'scroll');
                         $(main_div_id).animate({'width': new_width}, 'fast');
                     } else {
-                        $(main_div_id).animate({'width': op.width*1+resize_value}, 'fast');
+                        $(main_div_id).animate({'width': new_width}, 'fast');
                     };
                 } else {
-                    new_left = clickElementx - resize_value;
+                    var new_left = clickElementx - resize_value;
                     if ( new_left < 0 ) {
                         // Too Wide
                         $(widest_element).css('overflow-x', 'scroll');
@@ -236,8 +233,6 @@
             return true;
         };
     }
-
-
 
      function blockEvents(evt) {
          if ( evt.target ) {
