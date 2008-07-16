@@ -22,15 +22,15 @@
       </span>
       <table class="message">
         <tr>
-          <th>Original:</th>
+          <th>Original ${ help_link('original_message')}:</th>
           <td>${ breaklines(message) }</td>
         </tr>
         <tr py:if="message.plural">
-          <th>Plural Form:</th>
+          <th>Plural Form ${ help_link('plural_form')}:</th>
           <td>${breaklines(message.plural)}</td>
         </tr>
         <tr py:with="locations=message.locations">
-          <th>${ngettext("Location:", "Locations:", len(locations))}</th>
+          <th>${ngettext("Location:", "Locations:", len(locations))} ${ help_link('message_location')}</th>
           <td><py:for each="location in locations">
               <a href="$location.href">$location.fname:$location.lineno</a><br/>
             </py:for></td>
@@ -62,7 +62,9 @@
   </py:def>
 
   <py:def function="help_link(help_about, aditional_classes='')">
-    <a href="${req.href.l10nhelp(help_about)}" class="jTip $aditional_classes" title="Click for help">
+    <a href="${req.href.l10nhelp(help_about)}"
+       class="jTip $aditional_classes" title="Click for help"
+       py:if="'L10N_ADD' in req.perm">
       <img src="${req.href.chrome('tl10nm/img/info.png')}"/>
     </a>
   </py:def>

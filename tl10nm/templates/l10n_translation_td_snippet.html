@@ -2,21 +2,22 @@
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
   <xi:include href="l10n_macros.html" />
-  <div id="translation-$translation.id">
+  <div id="translation-$translation.id" class="hijax_output">
   <fieldset class="${translation.fuzzy and 'fuzzy' or 'notfuzzy'}"
             title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
-    <a class="floated hijax" py:if="not translation.fuzzy"
+    <a class="floated hijax fuzzy" py:if="not translation.fuzzy"
        href="${req.href.translation('mark_fuzzy', translation.id,
-                                    redirect_back=req.path_info + '#translation-$translation.id')}">
+                                    redirect_back=req.path_info + '#translation-%d' % translation.id)}">
       Mark this as a bad translation
     </a>
     ${ help_link('fuzzy_translation', 'floated')}
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
-        $('#translation-$translation.id a.hijax').hijax_link_request({
-          output: '#translation-$translation.id',
-          progress: true
-        });
+        $(document).hijaxLinkRequest.messages = {
+          ajaxError: "${_('We have an error')}"
+        };
+        $('#translation-$translation.id a.fuzzy').hijaxLinkRequest({ progress: true });
+        $('a.jTip').jTipNG();
       });
     </script>
     <span class="floated" py:if="translation.fuzzy">Translation is Fuzzy</span>

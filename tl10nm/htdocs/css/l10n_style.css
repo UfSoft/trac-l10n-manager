@@ -149,9 +149,9 @@ a.hijax img { border: none; }
     font-weight:bold;
 }
 
-#JT_copy p{
-margin:3px 0;
-}
+#JT_copy p { margin:3px 0; }
+#JT_copy pre { padding: 2px 2px; background-color: #f1f1f1; }
+
 
 #JT_copy img{
     padding: 1px;
@@ -165,12 +165,14 @@ margin:3px 0;
     font-size: 80%;
 }
 
-.jTip{
-  cursor:help;
+a.jTip{
+  cursor: help;
   border: none;
   text-decoration: none;
   vertical-align: middle;
   text-align: center;
 }
-
+a.jTip img { margin-bottom: 5px; vertical-align: middle; }
+a.jTip:hover { text-decoration: none; }
+a.jTip:link:hover, a.jTip:visited:hover { background-color: transparent; }
 

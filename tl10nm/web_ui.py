@@ -47,7 +47,7 @@ class L10nModule(Component):
         req.perm.require('L10N_VIEW')
         add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         add_script(req, 'tl10nm/js/tl10nm.js')
-        add_script(req, 'tl10nm/js/jquery.jtip.js')
+        add_script(req, 'tl10nm/js/jquery.jTipNG.js')
         add_script(req, 'tl10nm/js/jquery.blockUI.js')
 
         if req.path_info.startswith('/translations'):
@@ -104,6 +104,7 @@ class L10nModule(Component):
         data = {'translation': translation}
 
         sid_voted = translation.votes.filter_by(sid=req.authname).first()
+
         html_template = 'l10n_vote_td_snippet.html'
 
         if action == 'remove_vote':
@@ -123,7 +124,6 @@ class L10nModule(Component):
                 translation.votes.append(TranslationVote(translation,
                                                          req.authname, vote))
                 Session.commit()
-
             else:
                 if sid_voted.vote == vote:
                     # This must be a hand made request, a bad one
@@ -148,9 +148,6 @@ class L10nModule(Component):
             chrome = Chrome(self.env)
             output = chrome.render_template(req, html_template, data,
                                             fragment=True)
-            # Don't forget to include the form token to keep trac happy
-            if req.form_token:
-                output |= chrome._add_form_token(req.form_token)
             req.write(output.render())
             raise RequestDone
         else:

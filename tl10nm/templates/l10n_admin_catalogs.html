@@ -10,11 +10,13 @@
       xmlns:py="http://genshi.edgewall.org/"
       xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="admin.html" />
+  <xi:include href="l10n_macros.html" />
   <head>
     <title>L10N Manager - Manage Catalogs</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
         $("#fpath").suggest();
+        $('a.jTip').jTipNG();
       });
     </script>
     <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
@@ -32,8 +34,11 @@
         <table class="side_heads">
           <tr>
             <th><label for="fpath">Catalog Path:</label></th>
-            <td><input type="text" name="fpath" id="fpath" size="40"
-                       value="${defined('fpath') and fpath or '/'}"/></td>
+            <td>
+              <input type="text" name="fpath" id="fpath" size="40"
+                     value="${defined('fpath') and fpath or '/'}"/>
+              ${ help_link('admin_catalog_path') }
+            </td>
           </tr>
           <tr>
             <th>Description</th>

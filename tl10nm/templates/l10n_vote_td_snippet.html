@@ -1,7 +1,7 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/" py:strip="">
 
-  <div id="contents-$translation.id"
+  <div id="vote-contents-$translation.id" class="hijax_output"
        py:with="voter=translation.votes.filter_by(sid=req.authname).first();
              positive_voters=translation.votes.filter_by(vote=1);
              negative_voters=translation.votes.filter_by(vote=-1);
@@ -10,16 +10,18 @@
     <table class="translation_votes">
       <tr py:with="voted=voter and voter.vote==1; strip_link='L10N_ADD' not in req.perm or voted">
         <th>
-          <a href="${req.href.translation('vote_up', translation.id, redirect_back=req.path_info)}"
-             title="Vote Up" class="hijax" tid="$translation.id" py:strip="strip_link">
+          <a href="${req.href.translation('vote_up', translation.id,
+                                          redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
+             title="Vote Up" class="hijax" py:strip="strip_link">
             <img src="${ req.href.chrome((voted or strip_link) and 'tl10nm/img/upvoted.png' or
                                          'tl10nm/img/upvote.png')}"/>
           </a>
         </th>
         <td><span>
           <py:for each="idx, voter in enumerate(positive_voters.all())">
-            <a href="${req.href.translation('remove_vote', translation.id, redirect_back=req.path_info)}"
-               title="Remove my vote" class="hijax" tid="$translation.id"
+            <a href="${req.href.translation('remove_vote', translation.id,
+                                            redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
+               title="Remove my vote" class="hijax"
                py:strip="voter.sid!=req.authname">$voter.sid</a><span
                   py:if="idx!=positive_voters_count-1">, </span></py:for>
           </span>
@@ -36,16 +38,18 @@
       </tr>
       <tr py:with="voted=voter and voter.vote==-1; strip_link='L10N_ADD' not in req.perm or voted">
         <th>
-          <a href="${req.href.translation('vote_down', translation.id, redirect_back=req.path_info)}"
-             title="Vote Down" class="hijax" tid="$translation.id" py:strip="strip_link">
+          <a href="${req.href.translation('vote_down', translation.id,
+                                          redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
+             title="Vote Down" class="hijax" py:strip="strip_link">
             <img src="${ req.href.chrome((voted or strip_link) and 'tl10nm/img/downvoted.png' or
                                          'tl10nm/img/downvote.png')}"/>
           </a>
         </th>
         <td>
           <span><py:for each="idx, voter in enumerate(negative_voters.all())">
-            <a href="${req.href.translation('remove_vote', translation.id, redirect_back=req.path_info)}"
-               title="Remove my vote" class="hijax" tid="$translation.id"
+            <a href="${req.href.translation('remove_vote', translation.id,
+                                            redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
+               title="Remove my vote" class="hijax"
                py:strip="voter.sid!=req.authname">$voter.sid</a><span
                   py:if="idx!=negative_voters_count-1">, </span>
           </py:for></span>
@@ -55,7 +59,7 @@
   </div>
   <script type="text/javascript">
     jQuery(document).ready( function($) {
-      $('#contents-$translation.id a.hijax').hijax_link_request();
+      $('#vote-contents-$translation.id a.hijax').hijaxLinkRequest();
     });
   </script>
 </div>
