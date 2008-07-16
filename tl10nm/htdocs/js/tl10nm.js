@@ -24,6 +24,23 @@
 
             var output_element = op.output || findOutputDivParent(this);
 
+            function insertHtml(data) {
+                if ( op.progress ) { $.unblockUI(); };
+                $(output_element).html(data).animate(
+                    { opacity: 1.0 },
+                    { queue: false, speed: "fast" }
+                );
+            };
+
+            function insertAjaxError() {
+                if ( op.progress ) { $.unblockUI(); };
+                $(output_element).html(
+                    "<em>"+ messages.ajaxError +"</em>").animate(
+                        { opacity: 1.0 },
+                        { queue: false, speed: "fast" }
+                );
+            };
+
             jQuery(this).bind("click", function() {
                 $.removeData(this); // Clear this element out of jQ's data cache
                 $(output_element).animate(
@@ -36,17 +53,8 @@
                     url: this.href,
                     type: 'GET',
                     cache: false,
-                    error: function() {
-                        if ( op.progress ) { $.unblockUI(); };
-                        $(output_element).append("<em>"+ messages.ajaxError +"</em>")
-                    },
-                    success: function(data) {
-                        if ( op.progress ) { $.unblockUI(); };
-                        $(output_element).html(data).animate(
-                            { opacity: 1.0 },
-                            { queue: false, speed: "fast" }
-                        );
-                    },
+                    error: insertAjaxError,
+                    success: insertHtml,
                 });
                 // Don't send request twice, first was by the ajax call
                 return false;

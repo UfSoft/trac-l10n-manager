@@ -14,6 +14,11 @@
         var messages = $.extend({}, $.fn.jTipNG.messages, params.messages);
         var op = $.extend({}, $.fn.jTipNG.defaults, params);
 
+        function hideTooltip(elem) {
+            $(elem).animate(
+                {width: 0, height: 0}, {speed: 'fast', queue: false}).hide().remove();
+        }
+
         return this.each( function() {
             var main_div_id = '#'+op.divIdPrefix;
             // Make sure elements are jTip'ed only once
@@ -33,7 +38,7 @@
                 });
                 $(this).bind("mouseout", function(e) {
                     blockEvents(e);
-                    $(main_div_id).remove();
+                    hideTooltip(main_div_id);
                     return false;
                 });
                 if ( ! op.follow_tooltip ) {
@@ -43,7 +48,7 @@
                 $(this).bind("click", function() {
                     JT_show(this, op);
                     $(document).bind("click", function() {
-                        $(main_div_id).remove();
+                        hideTooltip(main_div_id);
                     });
                     return false;
                 });
@@ -90,7 +95,7 @@
         var arrow_div_id = "#"+op.divIdPrefix + (show_on_right && "_arrow_left" || "_arrow_right");
 
         // If there's already a tooltip open, first close it
-        if ( $(main_div_id).length >= 1 ) { $(main_div_id).remove() };
+        if ( $(main_div_id).length >= 1 ) { hideTooltip(main_div_id); };
 
         if ( op.followTooltip && op.trigger == 'click' ) {
             $(el).bind("click", function() {
@@ -129,7 +134,7 @@
 
         function JT_show_ajax_error(messages) {
             $($(title_div).html(messages.errorTitle)).slideDown("fast")
-            $(copy_div_id).html('<p>'+messages.ajaxErrorMessage+'</p>')
+            $(copy_div_id).html('<p>'+messages.ajaxErrorMessage+'</p>').slideDown("fast");
         }
 
         if(show_on_right){
