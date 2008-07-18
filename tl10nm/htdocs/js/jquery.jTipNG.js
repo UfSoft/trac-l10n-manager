@@ -79,7 +79,7 @@
         var ajax_params = op.ajax;
         var messages = op.messages;
 
-        ajax_params.url = el.href;
+        ajax_params.url = el.href + (el.href.indexOf('?')==-1 ? '?' : '&') + 'ajax_request=1';
         ajax_params.error = function() { JT_show_ajax_error(messages) };
         ajax_params.success = JT_insert_html;
 
@@ -94,15 +94,13 @@
         var copy_div_id = '#'+op.divIdPrefix+'_copy';
         var arrow_div_id = "#"+op.divIdPrefix + (show_on_right && "_arrow_left" || "_arrow_right");
 
-        // If there's already a tooltip open, first close it
-        if ( $(main_div_id).length >= 1 ) { hideTooltip(main_div_id); };
 
         if ( op.followTooltip && op.trigger == 'click' ) {
             $(el).bind("click", function() {
                window.location = el.href;
             });
             $(el).css('cursor', 'pointer');
-        }
+        };
 
 
         function JT_insert_html(html) {
@@ -135,7 +133,14 @@
         function JT_show_ajax_error(messages) {
             $($(title_div).html(messages.errorTitle)).slideDown("fast")
             $(copy_div_id).html('<p>'+messages.ajaxErrorMessage+'</p>').slideDown("fast");
-        }
+        };
+
+        // If there's already a tooltip open, first close it
+        if ( $(main_div_id).length >= 1 ) {
+            $(main_div_id).animate(
+               {width: 0, height: 0}, {speed: 'fast', queue: false}
+            ).hide().remove();
+        };
 
         if(show_on_right){
             $("body").append(
@@ -152,7 +157,7 @@
                 "<div id='"+title_div.substring(1)+"'>&nbsp;</div>" +
                 "<div id='"+copy_div_id.substring(1)+"'><div class='"+op.divIdPrefix+"_loader'><div></div></div>");//left side
             var clickElementx = getAbsoluteLeft(el) - ((op.width*1) + 15); //set x position
-        }
+        };
 
         $(title_div).hide();
         $(main_div_id).css({left: clickElementx, top: clickElementy});

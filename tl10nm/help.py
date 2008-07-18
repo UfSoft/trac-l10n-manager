@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: sw=4 ts=4 fenc=utf-8
 
+from datetime import datetime
 import os
 import re
 
@@ -10,6 +11,7 @@ from trac.core import *
 from trac.web import IRequestHandler
 from trac.web.chrome import Chrome
 from trac.web.main import RequestDone, ResourceNotFound
+from trac.util.datefmt import localtz
 from trac.util.translation import _
 
 from genshi.builder import tag
@@ -48,10 +50,16 @@ class L10NManagerHelpModule(Component):
         template = 'l10nhelp/%s.html' % match.group(1)
         data = {}
 
-        ajax_request = req.get_header('X-Requested-With')
-        data['ajax_request'] = ajax_request
+        data['ajax_request'] = ajax_request = \
+            req.get_header('X-Requested-With') == 'XMLHttpRequest' and \
+            req.args.get('ajax_request') == '1'
 
-        if not self.template_available(template):
+        last_modified = self.template_available(template)
+        # Include cache headers to ease on server requests since this data does
+        # not change
+        req.check_modified(last_modified)
+
+        if not last_modified:
             if ajax_request:
                 req.write(tag.p(_("Help Not Found")))
                 raise RequestDone
@@ -70,12 +78,14 @@ class L10NManagerHelpModule(Component):
 
     # Internal method
     def template_available(self, template):
-        valid_template = self.available_templates.get(template)
-        if valid_template is None:
+        last_modified = self.available_templates.get(template)
+        if last_modified is None:
             template_path = resource_filename(
                 __name__, os.path.join('templates', *(template.split('/')))
             )
             if os.path.exists(template_path):
-                self.available_templates[template] = True
-                return True
-        return valid_template
+                stat = os.stat(template_path)
+                mtime = datetime.fromtimestamp(stat.st_mtime, localtz)
+                self.available_templates[template] = mtime
+                return self.available_templates[template]
+        return last_modified
