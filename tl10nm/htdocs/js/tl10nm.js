@@ -66,6 +66,38 @@
         ajaxError: "An error ocurred",
     };
 
+
+    $.fn.HideShow = function() {
+        return this.each( function() {
+            var fieldset = this;
+            if ( ! $(fieldset).is('fieldset') ) return; // Return if it's not a fieldset
+            var legend = $('legend:first', fieldset);
+            if ( $(legend).length < 1 ) return; // return if there's no legend
+            var child_div = $('div:first', fieldset);
+            if ( $(child_div).length < 1 ) return; // return if layout is not good
+            $(child_div).hide();
+            $(legend).append(
+              ' (<a class="showhide" href="javascript:void(0);">show</a>)');
+            $('a:first', legend).bind('click', function() {
+              var link = this;
+              if ( $(this).text() == 'show' ) {
+                  $(child_div).slideDown('fast', function() {
+                      $(link).fadeOut('fast', function() {
+                          $(link).text('hide').fadeIn('fast')
+                      });
+                  });
+              } else {
+                  $(child_div).slideUp('fast', function() {
+                      $(link).fadeOut('fast', function() {
+                          $(link).text('show').fadeIn('fast')
+                      });
+                  });
+              };
+              return false;
+            });
+        });
+    };
+
     function findOutputDivParent(elem) {
         var parent_output_div = elem;
         while ( $(parent_output_div).get(0).tagName != 'DIV' ) {

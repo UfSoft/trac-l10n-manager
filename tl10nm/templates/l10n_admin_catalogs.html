@@ -31,23 +31,30 @@
     <form action="" name="new_catalog" id="new_catalog" method="post">
       <fieldset>
         <legend>Add new catalog template</legend>
-        <table class="side_heads">
-          <tr>
-            <th><label for="fpath">Catalog Path:</label></th>
-            <td>
-              <input type="text" name="fpath" id="fpath" size="40"
-                     value="${defined('fpath') and fpath or '/'}"/>
-              ${ help_link('admin_catalog_path') }
-            </td>
-          </tr>
-          <tr>
-            <th>Description</th>
-            <td><textarea name="description" cols="60" rows="6"></textarea></td>
-          </tr>
-        </table>
-        <div class="buttons">
-          <input type="submit" name="add_catalog" value="Add Catalog"/>
+        <div>
+          <table class="side_heads">
+            <tr>
+              <th><label for="fpath">Catalog Path:</label></th>
+              <td>
+                <input type="text" name="fpath" id="fpath" size="40"
+                       value="${defined('fpath') and fpath or '/'}"/>
+                ${ help_link('admin_catalog_path') }
+              </td>
+            </tr>
+            <tr>
+              <th>Description</th>
+              <td><textarea name="description" cols="60" rows="6"></textarea></td>
+            </tr>
+          </table>
+          <div class="buttons">
+            <input type="submit" name="add_catalog" value="Add Catalog"/>
+          </div>
         </div>
+        <script type="text/javascript">
+          jQuery(document).ready(function($) {
+            $('fieldset').HideShow();
+          });
+        </script>
       </fieldset>
     </form>
 

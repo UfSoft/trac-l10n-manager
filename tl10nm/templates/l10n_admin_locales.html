@@ -22,77 +22,85 @@
     <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
-    <h2>Manage Catalogs</h2>
+    <h2 py:if="'L10N_ADMIN' in req.perm">Manage Catalogs</h2>
 
     <div class="system-message" py:if="defined('error')">
       <span class="system-message">$error</span>
     </div>
 
-    <form action="" name="new_locale" id="new_locale" method="post">
+    <form action="" name="new_locale" id="new_locale" method="post"
+          py:if="'L10N_ADMIN' in req.perm">
       <fieldset>
-        <legend>Add new locale</legend>
-        <div class="addnew">
-          <fieldset>
-            <legend>Locale Admin(s)</legend>
-            <table class="listing scroll">
-              <thead>
-                <tr>
-                  <th class="sel">&nbsp;</th>
-                  <th>Known Users</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr py:for="sid, name, email in known_users">
-                  <td><input type="checkbox" name="admins" value="$sid"/></td>
-                  <td>$sid</td>
-                </tr>
-              </tbody>
-            </table>
-            <script type="text/javascript">
-              jQuery(document).ready( function($) {
-                $('table.scroll').tableScroller({minimumRows: 6});
-              });
-            </script>
-          </fieldset>
-        </div>
-        <div class="system-message" py:if="not catalog_templates">
-          You must first define a
-          <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
-        </div>
-        <table class="side_heads">
-          <tr>
-            <th><label for="catalog_template">Catalog Template:</label></th>
-            <td>
-              <select name="catalog_template">
-                <option py:for="catalog in catalog_templates"
-                        value="$catalog.id">$catalog.fpath</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <th><label for="locale">Locale:</label></th>
-            <td><input type="text" id="locale" name="locale"/></td>
-          </tr>
-          <tr>
-            <th><label for="catalog">Catalog Path:</label></th>
-            <td>
-              <fieldset>
-                <legend>Import Existing Data</legend>
-                <input type="text" id="catalog" name="catalog" size="40"
-                       value="${defined('catalog') and catalog or '/'}"/><br/>
-                <input type="checkbox" value="1" name="include_fuzzy">
-                  Inlcude fuzzy translations</input>
-                <p class="help">If you already have a localized catalog for this
-                  locale in the <a href="${req.href.browser()}">repository</a>,
-                  enter it's path here to import the available translations.</p>
+        <legend class="new_locale_legend">Add new locale</legend>
+        <div>
+          <div class="addnew">
+            <fieldset>
+              <legend>Locale Admin(s)</legend>
+              <table class="listing scroll">
+                <thead>
+                  <tr>
+                    <th class="sel">&nbsp;</th>
+                    <th>Known Users</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr py:for="sid, name, email in known_users">
+                    <td><input type="checkbox" name="admins" value="$sid"/></td>
+                    <td>$sid</td>
+                  </tr>
+                </tbody>
+              </table>
+              <script type="text/javascript">
+                jQuery(document).ready( function($) {
+                  $('table.scroll').tableScroller({minimumRows: 6});
+                });
+              </script>
+            </fieldset>
+          </div>
+          <div class="system-message" py:if="not catalog_templates">
+            You must first define a
+            <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
+          </div>
+          <table class="side_heads">
+            <tr>
+              <th><label for="catalog_template">Catalog Template:</label></th>
+              <td>
+                <select name="catalog_template">
+                  <option py:for="catalog in catalog_templates"
+                          value="$catalog.id">$catalog.fpath</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><label for="locale">Locale:</label></th>
+              <td><input type="text" id="locale" name="locale"/></td>
+            </tr>
+            <tr>
+              <th><label for="catalog">Catalog Path:</label></th>
+              <td>
+                <fieldset>
+                  <legend>Import Existing Data</legend>
+                  <input type="text" id="catalog" name="catalog" size="40"
+                         value="${defined('catalog') and catalog or '/'}"/><br/>
+                  <input type="checkbox" value="1" name="include_fuzzy">
+                    Inlcude fuzzy translations</input>
+                  <p class="help">If you already have a localized catalog for this
+                    locale in the <a href="${req.href.browser()}">repository</a>,
+                    enter it's path here to import the available translations.</p>
 
-              </fieldset>
-            </td>
-          </tr>
-        </table>
-        <div class="buttons">
-          <input type="submit" name="add_locale" value="Add Locale"/>
+                </fieldset>
+              </td>
+            </tr>
+          </table>
+          <div class="buttons">
+            <input type="submit" name="add_locale" value="Add Locale"/>
+          </div>
         </div>
+        <script type="text/javascript">
+          jQuery(document).ready(function($) {
+            $('fieldset').HideShow();
+          });
+        </script>
       </fieldset>
     </form>
 
@@ -114,7 +122,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr py:for="locale in locales">
+          <tr py:for="locale in locales" py:if="req.authname in locale.admins">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
             <td>
               <a href="${req.href.translations(locale.catalog.id)}">$locale.catalog.fpath</a>

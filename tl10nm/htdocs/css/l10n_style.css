@@ -189,3 +189,10 @@ a.jTip:link:hover, a.jTip:visited:hover { background-color: transparent; }
 #admins_and_contributors ul { margin: 5px; }
 
 div.addnew { clear: right; float: right; margin: -10px 10px; width: 33% /*; height: 200px; overflow-y: hidden; */ }
+
+a.showhide {
+  font-weight: bold;
+  font-size: 90%;
+  text-decoration: none;
+  border: none;
+}
