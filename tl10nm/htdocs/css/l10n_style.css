@@ -24,10 +24,10 @@ p.help tt { font-weight: bold; }
 
 table.listing { width: 100%; }
 table.listing td { vertical-align: middle; }
-table.listing td.stats {
+table.listing td.stats, table.listing td.narrow, table.listing th.narrow {
   text-align: center;
   white-space: nowrap;
-  width: 165px;
+  width: 1%;
 }
 
 ul.legend { list-style-type: none; padding-left: 0;}
@@ -176,3 +176,16 @@ a.jTip img { margin-bottom: 5px; vertical-align: middle; }
 a.jTip:hover { text-decoration: none; }
 a.jTip:link:hover, a.jTip:visited:hover { background-color: transparent; }
 
+#admins_and_contributors {
+  float: right;
+  position: relative;
+  width: 160px;
+  margin: 25px 0px 10px 10px;
+  padding: 10px;
+  padding-top: 0px;
+  background-color: #f3f6ff;
+}
+#admins_and_contributors h2 { background-color: #d9e1ff; margin-top: 10px; }
+#admins_and_contributors ul { margin: 5px; }
+
+div.addnew { clear: right; float: right; margin: -10px 10px; width: 33% /*; height: 200px; overflow-y: hidden; */ }

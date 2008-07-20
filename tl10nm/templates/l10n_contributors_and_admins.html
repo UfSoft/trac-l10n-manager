@@ -1,0 +1,16 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <div id="admins_and_contributors">
+    <h2>Admins</h2>
+    <ul>
+      <li py:for="admin in locale.admins">$admin.sid</li>
+    </ul>
+
+    <h2 py:if="locale.contributors">
+      ${ ngettext('Contributor', 'Contributors', len(locale.contributors))}
+    </h2>
+    <ul py:if="locale.contributors">
+      <li py:for="contributor in locale.contributors">$contributor</li>
+    </ul>
+  </div>
+</div>

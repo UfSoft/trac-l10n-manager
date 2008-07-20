@@ -1,7 +1,7 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/" py:strip="">
 
-  <div id="vote-contents-$translation.id" class="hijax_output"
+  <div id="vote-contents-$translation.id"
        py:with="voter=translation.votes.filter_by(sid=req.authname).first();
              positive_voters=translation.votes.filter_by(vote=1);
              negative_voters=translation.votes.filter_by(vote=-1);

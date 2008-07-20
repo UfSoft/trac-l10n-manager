@@ -38,6 +38,7 @@ class L10NAdminModule(Component):
         req.perm.require('L10N_ADMIN')
         add_script(req, 'tl10nm/js/autocomplete.js')
         add_script(req, 'tl10nm/js/jquery.jTipNG.js')
+        add_script(req, 'tl10nm/js/jquery.tablescroller.js')
 
         if req.get_header('X-Requested-With'):
             # AJAX request
@@ -246,10 +247,12 @@ class L10NAdminModule(Component):
                 data.update(self.add_locale(req))
 
 
+        data['known_users'] = self.env.get_known_users()
+
         templates = session(self.env).query(Catalog).all()
         data['catalog_templates'] = templates
-        locales = session(self.env).query(Locale).options(eagerload('catalog'))
-        data['locales'] = locales.all()
+        locales = session(self.env).query(Locale).all()
+        data['locales'] = locales
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_locales.html', data
@@ -259,6 +262,7 @@ class L10NAdminModule(Component):
         errors = []
         catalog_template_id = req.args.get('catalog_template', None)
         locale = req.args.get('locale')
+        locale_admins = req.args.getlist('admins')
 
         def add_error(error):
             errors.append(error)
@@ -271,6 +275,8 @@ class L10NAdminModule(Component):
 
         if not locale:
             return add_error(_("You must define the new catalog's locale"))
+        if not locale_admins:
+            return add_error(_("You must define at least one locale admin"))
 
         Session = session(self.env)
         catalog = Session.query(Catalog).get(catalog_template_id)
@@ -284,6 +290,8 @@ class L10NAdminModule(Component):
             return add_error(_("Locale Exists Already"))
 
         locale = Locale(catalog, locale, num_plurals)
+        for sid in locale_admins:
+            locale.admins.append(LocaleAdmin(locale, sid))
         catalog.locales.append(locale)
 
         Session.commit()
@@ -294,7 +302,7 @@ class L10NAdminModule(Component):
         locale_catalog_path = req.args.get('catalog')
         include_fuzzy = req.args.get('include_fuzzy') == '1'
 
-        if not locale_catalog_path:
+        if not locale_catalog_path or locale_catalog_path == '/':
             return data
 
         repos = self.env.get_repository(req.authname)

@@ -7,7 +7,10 @@
   <head>
     <title>Available Catalogs</title>
   </head>
-  <body>
+  <body py:if="not catalogs">
+    <h1>No available catalogs to translate</h1>
+  </body>
+  <body py:if="catalogs">
     <h1>Available Catalogs To Translate</h1>
     <div class="narrow_content">
       <ul py:for="catalog in catalogs" class="catalogs">

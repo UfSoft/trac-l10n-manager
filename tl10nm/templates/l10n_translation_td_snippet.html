@@ -2,7 +2,7 @@
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
   <xi:include href="l10n_macros.html" />
-  <div id="translation-$translation.id" class="hijax_output">
+  <div id="translation-$translation.id">
   <fieldset class="${translation.fuzzy and 'fuzzy' or 'notfuzzy'}"
             title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
     <a class="floated hijax fuzzy" py:if="not translation.fuzzy"
@@ -29,7 +29,8 @@
         </td>
       </tr>
       <tr py:for="ts in translation.strings">
-        <th>Translation<span py:if="len(list(translation.strings))>1" py:strip="">[$ts.index]</span>:</th>
+        <th>${ help_link('translation_index')}
+          Translation<span py:if="len(list(translation.strings))>1" py:strip="">[$ts.index]</span>:</th>
         <td>${breaklines(ts.string)}</td>
       </tr>
       <tr>

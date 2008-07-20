@@ -1,6 +1,7 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:py="http://genshi.edgewall.org/"
-     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+     xmlns:xi="http://www.w3.org/2001/XInclude"
+     xmlns:i18n="http://genshi.edgewall.org/i18n" py:strip="">
 
   <py:def function="breaklines(string)" py:with="lines = string.split('\n')">
     <span class="string" title="'${'\\n'.join(lines)}'"><py:for
@@ -22,21 +23,21 @@
       </span>
       <table class="message">
         <tr>
-          <th>Original ${ help_link('original_message')}:</th>
+          <th>${ help_link('original_message')} Original:</th>
           <td>${ breaklines(message) }</td>
         </tr>
         <tr py:if="message.plural">
-          <th>Plural Form ${ help_link('plural_form')}:</th>
+          <th>${ help_link('plural_form')} Plural Form:</th>
           <td>${breaklines(message.plural)}</td>
         </tr>
         <tr py:with="locations=message.locations">
-          <th>${ngettext("Location:", "Locations:", len(locations))} ${ help_link('message_location')}</th>
+          <th>${help_link('message_location')} ${ngettext("Location:", "Locations:", len(locations))}</th>
           <td><py:for each="location in locations">
               <a href="$location.href">$location.fname:$location.lineno</a><br/>
             </py:for></td>
         </tr>
         <tr py:if="message.comments">
-          <th>System Comments ${ help_link('system_comments')} :</th>
+          <th>${ help_link('system_comments')} System Comments:</th>
           <td><py:for each="comment in message.comments"
             >${ breaklines(comment.comment) }<br/></py:for></td>
         </tr>
@@ -49,7 +50,7 @@
   </py:def>
 
   <py:def function="render_translation_fields(catalog, locale, message)">
-    <py:with vars="translations=message.translations(locale_id=locale.id)">
+    <py:with vars="translations=message.translations.filter_by(locale_id=locale.id).all()">
     <tr py:if="translations">
       <th>${ ngettext('Current Translation:', 'Current Translations:', len(translations)) }</th>
       <td>
@@ -67,5 +68,20 @@
        py:if="'L10N_ADD' in req.perm">
       <img src="${req.href.chrome('tl10nm/img/info.png')}"/>
     </a>
+  </py:def>
+
+  <py:def function="render_stats_graph(locale)">
+    <span><img height="10" width="${visible_value(locale.translated_percent)}"
+               src="${req.href.chrome('tl10nm/img/green.png')}"
+               alt="${'%d' % locale.translated} translated messages"
+               title="${'%d' % locale.translated} translated messages"/><img
+               height="10" width="${visible_value(locale.fuzzy_percent)}"
+               src="${req.href.chrome('tl10nm/img/yellow.png')}"
+               alt="${'%d' % locale.fuzzy} fuzzy messages"
+               title="${'%d' % locale.fuzzy} fuzzy messages"/><img
+               height="10" width="${visible_value(locale.untranslated_percent)}"
+               src="${req.href.chrome('tl10nm/img/red.png')}"
+               alt="${'%d' % locale.untranslated} untranslated messages"
+               title="${'%d' % locale.untranslated} untranslated messages"/></span>
   </py:def>
 </div>

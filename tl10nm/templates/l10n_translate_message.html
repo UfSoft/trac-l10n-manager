@@ -11,76 +11,30 @@
   </head>
   <body>
     <div id="content" class="narrow_content">
-      <h2>$max_untranslated messages still need a translation</h2>
-      <form action="${req.href.translate(catalog_id, locale, message.id)}"
+      <h2>${ ngettext('Translated %(translated)d of %(translatable)d message for the %(locale_display_name)s locale',
+                      'Translated %(translated)d of %(translatable)d messages for the %(locale_display_name)s locale',
+                      translatable) % dict(translated=translated,
+                                           translatable=translatable,
+                                           locale_display_name=locale.locale.display_name) }</h2>
+      <form action="${req.href.translate(catalog_id, locale.locale, message.id)}"
             method="post">
         ${ render_message(message.catalog, locale, message, False) }
-        <hr/>
-        <h2>Translate Message</h2>
         <fieldset class="translation">
+          <legend>Translate Message</legend>
           <table class="translations" style="float: left; width: 90%;">
-            <tr py:if="translations">
-              <th>${ngettext("Current Translation:",
-                             "Current Translations:",
-                             len(translations))}</th>
-              <td>
-                <py:for each="trans in translations">
-                <fieldset>
-                  <span class="floated" py:if="'fuzzy' in trans.flags">
-                    <em>Translation is fuzzy, it needs to be re-translated.</em>
-                  </span>
-                  <table class="translations">
-                    <tr py:if="trans.uc">
-                      <th>Translator Comment:</th>
-                      <td>${breaklines(trans.uc)}</td>
-                    </tr>
-                  <py:choose test="">
-                  <py:when test="message.plural">
-                    <tr>
-                      <th>Translation [0]:</th>
-                      <td>${breaklines(trans.string)}</td>
-                    </tr>
-                    <tr py:for="plural_form in trans.plurals" >
-                      <th >${ _('Translation [%d]:') % plural_form.idx}</th>
-                      <td>${breaklines(plural_form.string)}</td>
-                    </tr>
-                  </py:when>
-                  <py:otherwise>
-                    <tr>
-                      <th>Translation:</th>
-                      <td>${breaklines(trans.string)}</td>
-                    </tr>
-                  </py:otherwise>
-                  </py:choose>
-                    <tr py:if="trans.flags">
-                      <th>Flags:</th>
-                      <td>
-                        ${ ', '.join(trans.flags) }
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Author:</th>
-                      <td>$trans.sid</td>
-                    </tr>
-                    <tr>
-                      <th>Timestamp:</th>
-                      <td>${format_datetime(trans.ts)}</td>
-                    </tr>
-                  </table>
-                </fieldset>
-                </py:for>
-              </td>
-            </tr>
             <tr>
-              <th>Translation Comment:</th>
-              <td><textarea name="comment" rows="2" cols="70">$comment</textarea></td>
+              <th>${ help_link('translator_comment')} Translation Comment:</th>
+              <td><input type="text" name="comment" value="$comment" size="60"/></td>
             </tr>
             <tr py:if="not message.plural">
-              <th>New Translation:</th>
+              <th>${ help_link('translation_index_0')} New Translation:</th>
               <td><textarea name="translation" rows="6" cols="70"/></td>
             </tr>
             <tr py:if="message.plural" py:for="idx in range(locale.num_plurals)" >
-              <th >${ _('Translation [%d]:') % idx}</th>
+              <th>
+                ${ help_link('translation_index_%s' % (idx==0 and '0' or 'n'))}
+                ${ _('New Translation [%d]:') % idx}
+              </th>
               <td><textarea name="translation-$idx" rows="6" cols="70"/></td>
             </tr>
           </table>
@@ -91,5 +45,16 @@
         </div>
       </form>
     </div>
+    <script type="text/javascript">
+      jQuery(document).ready( function($) {
+        <!--! Set up the translatable JS strings -->
+        $(document).jTipNG.messages = {
+          followTooltip: "${_('Follow Tooltip')}",
+          ajaxErrorMessage: "${_('Ajax request to server failed')}",
+          errorTitle: "${_('ERROR')}"
+        };
+        $('a.jTip').jTipNG();
+      })
+    </script>
   </body>
 </html>

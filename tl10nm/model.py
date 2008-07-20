@@ -60,13 +60,20 @@ locale_table = sqla.Table('l10n_locales', metadata,
     sqla.UniqueConstraint('locale', 'catalog_id')
 )
 
+locale_admin_table = sqla.Table('l10n_locale_admins', metadata,
+    sqla.Column('id', sqla.Integer, primary_key=True),
+    sqla.Column('locale_id', None, sqla.ForeignKey('l10n_locales.id')),
+    sqla.Column('sid', sqla.Text, nullable=False),
+)
+
 translation_table = sqla.Table('l10n_translations', metadata,
     sqla.Column('id', sqla.Integer, primary_key=True),
     sqla.Column('locale_id', None, sqla.ForeignKey('l10n_locales.id')),
     sqla.Column('msgid_id', None, sqla.ForeignKey('l10n_msgids.id')),
     sqla.Column('sid', sqla.Text, nullable=False),
     sqla.Column('created', sqla.Integer),
-    sqla.Column('fuzzy', sqla.Boolean)
+    sqla.Column('fuzzy', sqla.Boolean),
+    sqla.UniqueConstraint('locale_id', 'msgid_id', 'sid')
 )
 
 translation_string_table = sqla.Table('l10n_translation_strings', metadata,
@@ -109,8 +116,6 @@ class MsgID(object):
     def split(self, split_by):
         return self.string.split(split_by)
 
-    def translations(self, **kwargs):
-        return self.translations_.filter_by(**kwargs).all()
 
 class MsgIDLocation(object):
     """Represents the catalog's msgid location on source"""
@@ -159,6 +164,7 @@ class Locale(object):
     @property
     def translated(self):
         return self.translations.filter_by(fuzzy=False).count()
+
     @property
     def translated_percent(self):
         return self.translated * 100.0 / self.catalog.messages.count()
@@ -175,6 +181,19 @@ class Locale(object):
     def fuzzy_percent(self):
         return self.fuzzy * 100.0 / self.catalog.messages.count()
 
+    @property
+    def contributors(self):
+        contributors = []
+        for translation in self.translations.all():
+            if translation.sid not in contributors:
+                contributors.append(translation.sid)
+        return contributors
+
+class LocaleAdmin(object):
+    def __init__(self, locale, sid):
+        self.locale = locale
+        self.sid = sid
+
 class Translation(object):
     """Represents a catalog's translation"""
     def __init__(self, locale, msgid, sid, fuzzy=False, created=None):
@@ -190,7 +209,7 @@ class Translation(object):
 
 class TranslationString(object):
     """Represents a catalog's translation string"""
-    def __init__(self, translation, string, index):
+    def __init__(self, translation, string, index=0):
         self.translation = translation
         self.string = string
         self.index = index
@@ -225,19 +244,24 @@ mapper(Catalog, catalog_table, properties=dict(
 mapper(Locale, locale_table, properties=dict(
     translations = dynamic_loader(Translation, backref='locale',
                                   cascade='all, delete, delete-orphan'),
-    locale = synonym('_locale', map_column=True)
+    locale = synonym('_locale', map_column=True),
+    admins = relation(LocaleAdmin, backref='locale',
+                      cascade='all, delete, delete-orphan')
 ))
+
+mapper(LocaleAdmin, locale_admin_table)
 
 mapper(MsgID, msgid_table, properties=dict(
     locations = relation(MsgIDLocation, backref='msgid', #lazy=False,
                          cascade='all, delete, delete-orphan',
                          order_by=[msgid_location_table.c.fname,
                                    msgid_location_table.c.lineno]),
-    comments = relation(MsgIDComment, backref='msgid', #lazy=False,
+    comments = relation(MsgIDComment, backref='msgid',
                         cascade='all, delete, delete-orphan'),
-    flags = relation(MsgIDFlag, backref='msgid', #lazy=False,
+    flags = relation(MsgIDFlag, backref='msgid',
                      cascade='all, delete, delete-orphan'),
-    translations_ = dynamic_loader(Translation, backref='msgid')
+    translations = dynamic_loader(Translation, backref='msgid',
+                                  order_by=[translation_table.c.created])
 ))
 
 mapper(MsgIDLocation, msgid_location_table)

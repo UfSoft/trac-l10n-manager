@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: sw=4 ts=4 fenc=utf-8
 
+import random
 import re
 
 from genshi.builder import tag
@@ -67,7 +68,6 @@ class L10nModule(Component):
             raise ResourceNotFound("Bad URL")
 
         catalog_id, locale_name, page = match.groups()
-
         Session = session(self.env)
         if not catalog_id:
             # List available catalogs
@@ -76,12 +76,48 @@ class L10nModule(Component):
 
         if not locale_name:
             # List available locales
-            data = {'catalog': Session.query(Catalog).get(int(catalog_id))}
+            catalog = Session.query(Catalog).get(int(catalog_id))
+            if not catalog:
+                req.redirect(req.href.translations())
+            data = {'catalog': catalog}
             return 'l10n_locales_list.html', data, None
 
         # List messages of specified locale
-        return self._list_messages(req, int(catalog_id), locale_name,
-                                   int(page or 1))
+        catalog_id, page = int(catalog_id), int(page or 1)
+
+        locale = Session.query(Locale).filter_by(locale=locale_name,
+                                                 catalog_id=catalog_id).first()
+
+        if not locale:
+            req.redirect(req.href.translations(catalog_id))
+
+
+        data = {'locale': locale, 'catalog_id': catalog_id}
+
+        paginator = Paginator(list(locale.catalog.messages), page-1, 3)
+        data['messages'] = paginator
+        shown_pages = paginator.get_shown_pages(25)
+        pagedata = []
+        for show_page in shown_pages:
+            page_href = req.href.translations(catalog_id, locale_name,
+                                              show_page)
+            pagedata.append([page_href, None, str(show_page),
+                             'page %s' % show_page])
+        fields = ['href', 'class', 'string', 'title']
+        paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
+        paginator.current_page = {'href': None, 'class': 'current',
+                                  'string': str(paginator.page + 1),
+                                  'title':None}
+        if paginator.has_next_page:
+            add_link(req, 'next', req.href.translations(catalog_id,
+                                                        locale_name, page+1),
+                     _('Next Page'))
+        if paginator.has_previous_page:
+            add_link(req, 'prev', req.href.translations(catalog_id,
+                                                        locale_name, page-1),
+                     _('Previous Page'))
+
+        return 'l10n_messages.html', data, None
 
     def process_translation_request(self, req):
         match = re.match(r'^/translation'
@@ -166,63 +202,50 @@ class L10nModule(Component):
 
         if not catalog_id or not locale_name:
             req.redirect(req.href.translations())
-        if msgid_id:
-            return self._translate_msgid(req, int(catalog_id), locale_name,
-                                         int(msgid_id))
 
+        catalog_id = int(catalog_id)
 
-    # Internal Methods
-    def _translate_msgid(self, req, catalog_id, locale_name, msgid_id):
         Session = session(self.env)
 
         locale = Session.query(Locale).filter_by(locale=locale_name,
                                                  catalog_id=catalog_id).first()
-        message = Session.query(MsgID).get(msgid_id)
-        data = {'message': message, 'catalog_id': catalog_id,
-                'locale': locale}
 
-        for translation in message.translations(locale_id=locale.id):
-            voter=translation.votes.filter_by(sid=req.authname).first()
-            print '\n\n', repr(voter.sid), repr(voter.vote)
+        data = {'catalog_id': catalog_id, 'locale': locale}
+
+
+        data['translated'] = locale.translations.filter_by(sid=req.authname).count()
+        catalog = Session.query(Catalog).get(catalog_id)
+        ids = [m.id for m in catalog.messages.all() if not
+               m.translations.filter(
+                    translation_table.c.sid!=req.authname).filter(
+                        translation_table.c.locale_id==locale.id).all()]
+        data['translatable'] = len(ids)
+
+        if not msgid_id:
+            # Provide a random translation to the user
+            data['message'] = Session.query(MsgID).get(random.choice(ids))
+        else:
+            data['message'] = Session.query(MsgID).get(int(msgid_id))
+
+
+        if req.method == 'POST':
+            translation = Translation(locale, message, req.authname)
+            comment = TranslationComment(translation, req.args.get('comment'))
+            translation.comments.append(comment)
+            if message.plural:
+                for idx in range(locale.num_plurals):
+                    string = req.args.get('translation-%d' % idx)
+                    translation.strings.append(
+                                    TranslationString(translation, string, idx))
+            else:
+                translation.strings.append(
+                                TranslationString(translation,
+                                                  req.args.get('translation')))
+            Session.save(translation)
+            Session.commit()
+            # Redirect back to locale translations
+            req.redirect(req.href.translations(catalog_id, locale_name))
         return 'l10n_translate_message.html', data, None
-
-    def _list_messages(self, req, catalog_id, locale_name, page):
-        Session = session(self.env)
-        locale = Session.query(Locale).filter_by(locale=locale_name,
-                                                 catalog_id=catalog_id).first()
-
-        data = {'locale': locale, 'catalog_id': catalog_id}
-
-        paginator = Paginator(list(locale.catalog.messages), page-1, 5)
-        data['messages'] = paginator
-        shown_pages = paginator.get_shown_pages(25)
-        pagedata = []
-        for show_page in shown_pages:
-            page_href = req.href.translations(catalog_id, locale_name,
-                                              show_page)
-            pagedata.append([page_href, None, str(show_page),
-                             'page %s' % show_page])
-        fields = ['href', 'class', 'string', 'title']
-        paginator.shown_pages = [dict(zip(fields, p)) for p in pagedata]
-        paginator.current_page = {'href': None, 'class': 'current',
-                                  'string': str(paginator.page + 1),
-                                  'title':None}
-        if paginator.has_next_page:
-            add_link(req, 'next', req.href.translations(locale_id, page+1),
-                     _('Next Page'))
-        if paginator.has_previous_page:
-            add_link(req, 'prev', req.href.translations(locale_id, page-1),
-                     _('Previous Page'))
-        return 'l10n_messages.html', data, None
-
-    def _translate_locale(self, req, catalog_id, locale_name):
-        locale = session(self.env).query(Locale).filter_by(locale=locale_name,
-                                                 catalog_id=catalog_id).first()
-#        paginator = Paginator(locale.catalog.messages,
-        data = {'locale': locale}
-        return 'l10n_messages.html', data, None
-
-
 
 
 
