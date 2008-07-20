@@ -64,6 +64,7 @@ locale_admin_table = sqla.Table('l10n_locale_admins', metadata,
     sqla.Column('id', sqla.Integer, primary_key=True),
     sqla.Column('locale_id', None, sqla.ForeignKey('l10n_locales.id')),
     sqla.Column('sid', sqla.Text, nullable=False),
+    sqla.UniqueConstraint('locale_id', 'sid')
 )
 
 translation_table = sqla.Table('l10n_translations', metadata,

@@ -31,30 +31,30 @@
     <form action="" name="new_locale" id="new_locale" method="post">
       <fieldset>
         <legend>Add new locale</legend>
-      <div class="addnew">
-        <fieldset>
-          <legend>Locale Admin(s)</legend>
-          <table class="listing scroll">
-            <thead>
-              <tr>
-                <th class="sel">&nbsp;</th>
-                <th>Known Users</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr py:for="sid, name, email in known_users">
-                <td><input type="checkbox" name="admins" value="$sid"/></td>
-                <td>$sid</td>
-              </tr>
-            </tbody>
-          </table>
-          <script type="text/javascript">
-            jQuery(document).ready( function($) {
-              $('table.scroll').tableScroller({minimumRows: 6});
-            });
-          </script>
-        </fieldset>
-      </div>
+        <div class="addnew">
+          <fieldset>
+            <legend>Locale Admin(s)</legend>
+            <table class="listing scroll">
+              <thead>
+                <tr>
+                  <th class="sel">&nbsp;</th>
+                  <th>Known Users</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr py:for="sid, name, email in known_users">
+                  <td><input type="checkbox" name="admins" value="$sid"/></td>
+                  <td>$sid</td>
+                </tr>
+              </tbody>
+            </table>
+            <script type="text/javascript">
+              jQuery(document).ready( function($) {
+                $('table.scroll').tableScroller({minimumRows: 6});
+              });
+            </script>
+          </fieldset>
+        </div>
         <div class="system-message" py:if="not catalog_templates">
           You must first define a
           <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.

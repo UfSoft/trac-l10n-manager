@@ -61,8 +61,7 @@ class L10NManagerHelpModule(Component):
 
         if not last_modified:
             if ajax_request:
-                req.write(tag.h2(_('Error')))
-                req.write(tag.p(_("Help Not Found")))
+                req.write(tag(tag.h2(_('Error')), tag.p(_("Help Not Found"))))
                 raise RequestDone
             raise ResourceNotFound(_("Help Not Found"))
 
