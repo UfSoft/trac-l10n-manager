@@ -1,7 +1,9 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/" py:strip="">
-  <div id="admins_and_contributors">
-    <h2>Admins</h2>
+  <div id="admins_and_contributors" py:if="locale.admins or locale.contributors">
+    <h2 py:if="locale.admins">
+      ${ ngettext('Admin', 'Admins', len(locale.admins))}
+    </h2>
     <ul>
       <li py:for="admin in locale.admins">$admin.sid</li>
     </ul>

@@ -8,6 +8,7 @@ from babel import Locale as BabelLocale
 import sqlalchemy as sqla
 from sqlalchemy.orm import mapper, relation, dynamic_loader, backref, synonym
 from sqlalchemy.orm import eagerload
+from sqlalchemy.orm.collections import InstrumentedList
 
 from tracext.sa import session
 
@@ -235,6 +236,24 @@ class TranslationVote(object):
         self.sid = sid
         self.vote = vote
 
+class OverridenInstrumentedList(InstrumentedList):
+    __attr_to_get__ = 'sid'
+
+    def __contains__(self, obj):
+        for rec in self:
+            if hasattr(rec, self.__attr_to_get__):
+                return getattr(rec, self.__attr_to_get__) == obj
+        return InstrumentedList.__contains__(self)
+
+    def __call__(self, attr_to_get):
+        attr_results = []
+        for rec in self:
+            if hasattr(rec, attr_to_get):
+                attr_results.append(getattr(rec, attr_to_get))
+        return attr_results
+
+
+
 mapper(Catalog, catalog_table, properties=dict(
     messages = dynamic_loader(MsgID, backref='catalog',
                         cascade='all, delete, delete-orphan'),
@@ -247,10 +266,13 @@ mapper(Locale, locale_table, properties=dict(
                                   cascade='all, delete, delete-orphan'),
     locale = synonym('_locale', map_column=True),
     admins = relation(LocaleAdmin, backref='locale',
+                      collection_class=OverridenInstrumentedList,
                       cascade='all, delete, delete-orphan')
 ))
 
-mapper(LocaleAdmin, locale_admin_table)
+mapper(LocaleAdmin, locale_admin_table, properties=dict(
+    locales = relation(Locale, backref='admin')
+))
 
 mapper(MsgID, msgid_table, properties=dict(
     locations = relation(MsgIDLocation, backref='msgid', #lazy=False,

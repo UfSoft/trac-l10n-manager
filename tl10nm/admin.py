@@ -33,10 +33,15 @@ class L10NAdminModule(Component):
         if 'L10N_ADMIN' in req.perm:
             yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
             yield ('translations', 'L10N Manager', 'locales', _('Locales'))
+        elif 'L10N_MODERATE' in req.perm:
+            # Is user a manager of any locale
+            if session(self.env).query(LocaleAdmin).get_by(sid=req.authname):
+                yield ('translations', 'L10N Manager', 'locales', _('Locales'))
 
     def render_admin_panel(self, req, cat, page, path_info):
-        req.perm.require('L10N_ADMIN')
+        req.perm.require('L10N_MODERATE', 'L10N_ADMIN')
         add_script(req, 'tl10nm/js/autocomplete.js')
+        add_script(req, 'tl10nm/js/tl10nm.js')
         add_script(req, 'tl10nm/js/jquery.jTipNG.js')
         add_script(req, 'tl10nm/js/jquery.tablescroller.js')
 
@@ -245,6 +250,10 @@ class L10NAdminModule(Component):
                 data.update(self.delete_locale(req))
             elif req.args.get('add_locale'):
                 data.update(self.add_locale(req))
+
+        if 'download' in req.args:
+            format = req.args.get('download')
+            locale_id = req.args.get('locale_id')
 
 
         data['known_users'] = self.env.get_known_users()

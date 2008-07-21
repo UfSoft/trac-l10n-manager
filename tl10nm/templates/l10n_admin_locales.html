@@ -136,9 +136,9 @@
             <td class="stats">$locale.fuzzy</td>
             <td class="stats">$locale.untranslated</td>
             <td class="stats">
-              <a href="${req.href.admin('translations', 'locales', download='po', locale=locale.locale)}"
+              <a href="${req.href.admin('translations', 'locales', download='po', locale_id=locale.id)}"
                  title="Download localized catalog">PO</a>
-              <a href="${req.href.admin('translations', 'locales', download='mo', locale=locale.locale)}"
+              <a href="${req.href.admin('translations', 'locales', download='mo', locale_id=locale.id)}"
                  title="Download compiled catalog">MO</a>
             </td>
           </tr>
