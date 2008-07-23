@@ -19,10 +19,11 @@
         $("#locale").suggest("", "locale");
       });
     </script>
+    <!--! Need to get the stylesheet on the template so that trac's admin.css get's overriden  -->
     <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
-    <h2 py:if="'L10N_ADMIN' in req.perm">Manage Catalogs</h2>
+    <h2 py:if="'L10N_ADMIN' in req.perm">Manage Locales</h2>
 
     <div class="system-message" py:if="defined('error')">
       <span class="system-message">$error</span>
@@ -33,6 +34,10 @@
       <fieldset>
         <legend class="new_locale_legend">Add new locale</legend>
         <div>
+          <div class="system-message" py:if="[p.catalogs for p in projects if p.catalogs]==[]">
+            You must first define a
+            <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
+          </div>
           <div class="addnew">
             <fieldset>
               <legend>Locale Admin(s)</legend>
@@ -57,19 +62,19 @@
               </script>
             </fieldset>
           </div>
-          <div class="system-message" py:if="not catalog_templates">
-            You must first define a
-            <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
-          </div>
           <table class="side_heads">
             <tr>
-              <th><label for="catalog_template">Catalog Template:</label></th>
+              <th><label for="project_id">Project:</label></th>
               <td>
-                <select name="catalog_template">
-                  <option py:for="catalog in catalog_templates"
-                          value="$catalog.id">$catalog.fpath</option>
+                <select name="project_id" id="project_id">
+                  <option py:for="project in projects"
+                          value="$project.id">$project.name</option>
                 </select>
               </td>
+            </tr>
+            <tr>
+              <th><label for="catalog_template">Catalog Template:</label></th>
+              <td><div id="catalog_templates"/></td>
             </tr>
             <tr>
               <th><label for="locale">Locale:</label></th>
@@ -96,11 +101,6 @@
             <input type="submit" name="add_locale" value="Add Locale"/>
           </div>
         </div>
-        <script type="text/javascript">
-          jQuery(document).ready(function($) {
-            $('fieldset').HideShow();
-          });
-        </script>
       </fieldset>
     </form>
 
@@ -148,5 +148,18 @@
           <input type="submit" name="delete_selected" value="Remove Selected" />
       </div>
     </form>
+    <script type="text/javascript">
+      jQuery(document).ready(function($) {
+        $("#project_id").projectCatalogOptions(
+          "${req.href.admin('translations', 'locales')}", "#catalog_templates");
+        $('fieldset').HideShow();
+        <py:if test="[p.catalogs for p in projects if p.catalogs]==[]">
+        $('fieldset :enabled').enable(false);
+        </py:if>
+        <py:if test="[p.localized for p in projects if p.localized]==[]">
+        $('fieldset legend:first a:first').click();
+        </py:if>
+      });
+    </script>
   </body>
 </html>

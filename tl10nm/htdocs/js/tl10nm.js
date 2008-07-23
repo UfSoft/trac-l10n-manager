@@ -24,7 +24,7 @@
 
             var output_element = op.output || findOutputDivParent(this);
 
-            function insertHtml(data) {
+            var insertHtml = function(data) {
                 if ( op.progress ) { $.unblockUI(); };
                 $(output_element).html(data).animate(
                     { opacity: 1.0 },
@@ -32,7 +32,7 @@
                 );
             };
 
-            function insertAjaxError() {
+            var insertAjaxError = function() {
                 if ( op.progress ) { $.unblockUI(); };
                 $(output_element).html(
                     "<em>"+ messages.ajaxError +"</em>").animate(
@@ -80,7 +80,7 @@
               ' (<a class="showhide" href="javascript:void(0);">show</a>)');
             $('a:first', legend).bind('click', function() {
               var link = this;
-              if ( $(this).text() == 'show' ) {
+              if ( $(link).text() == 'show' ) {
                   $(child_div).slideDown('fast', function() {
                       $(link).fadeOut('fast', function() {
                           $(link).text('hide').fadeIn('fast')
@@ -95,6 +95,29 @@
               };
               return false;
             });
+        });
+    };
+
+    $.fn.projectCatalogOptions = function (mainurl, output_div) {
+        return this.each( function() {
+            var insertError = function () {
+                $(output_div).addClass('system-message').html(
+                    "Failed to get catalog templates from server"
+                );
+            };
+
+            var insertHtml = function(data) {
+                $(output_div).removeClass('system-message').html(data);
+            };
+
+            $(this).change( function() {
+                $.ajax({
+                    url: mainurl + "?project_catalogs=" + $(this).val(),
+                    error: insertError,
+                    success: insertHtml
+                });
+            });
+            $(this).change();
         });
     };
 

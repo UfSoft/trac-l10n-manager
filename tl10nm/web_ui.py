@@ -71,7 +71,7 @@ class L10nModule(Component):
         Session = session(self.env)
         if not catalog_id:
             # List available catalogs
-            data = {'catalogs': Session.query(Catalog).all()}
+            data = {'projects': Session.query(Project).all()}
             return 'l10n_catalogs_list.html', data, None
 
         if not locale_name:

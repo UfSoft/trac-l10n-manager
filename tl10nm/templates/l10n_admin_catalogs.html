@@ -19,6 +19,7 @@
         $('a.jTip').jTipNG();
       });
     </script>
+    <!--! Need to get the stylesheet on the template so that trac's admin.css get's overriden  -->
     <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
@@ -32,7 +33,20 @@
       <fieldset>
         <legend>Add new catalog template</legend>
         <div>
+          <div class="system-message" py:if="not projects">
+            You must first create a
+            <a href="${req.href.admin('translations', 'projects')}">project</a>.
+          </div>
           <table class="side_heads">
+            <tr>
+              <th>Project</th>
+              <td>
+                <select name="project_id">
+                  <option py:for="project in projects"
+                          value="$project.id">$project.name</option>
+                </select>
+              </td>
+            </tr>
             <tr>
               <th><label for="fpath">Catalog Path:</label></th>
               <td>
@@ -53,14 +67,24 @@
         <script type="text/javascript">
           jQuery(document).ready(function($) {
             $('fieldset').HideShow();
+            <py:if test="[p.catalogs for p in projects if p.catalogs]==[]">
+            $('fieldset legend:first a:first').click()
+            </py:if>
+            <py:if test="not projects">
+            $('fieldset :enabled').enable(false);
+            </py:if>
           });
         </script>
       </fieldset>
     </form>
 
     <form action="" id="catalogs_listing" name="new_catalog"
-          method="post" py:if="catalogs">
+          method="post" py:if="[p.catalogs for p in projects if p.catalogs]!=[]">
       <table class="listing">
+        <py:for each="project in projects">
+        <thead>
+          <tr><th class="projectname" colspan="4">$project.name</th></tr>
+        </thead>
         <thead>
           <tr>
             <th class="sel">&nbsp;</th>
@@ -70,7 +94,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr py:for="template in catalogs">
+          <tr py:for="template in project.catalogs">
             <td><input type="checkbox" value="$template.id" name="sel"/></td>
             <td><a href="${req.href.browser(template.fpath)}">$template.fpath</a></td>
             <td>
@@ -83,6 +107,7 @@
             <td>$template.description</td>
           </tr>
         </tbody>
+        </py:for>
       </table>
       <div class="buttons">
           <input type="submit" name="delete_selected" value="Remove Selected" />

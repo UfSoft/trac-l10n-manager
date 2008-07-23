@@ -1,0 +1,95 @@
+<!--!
+  l10n_admin_projects
+  Created by Pedro Algarvio on 2008-07-21
+  Copyright (c) 2008 Pedro Algarvio. All rights reserved.
+-->
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="admin.html" />
+  <xi:include href="l10n_macros.html" />
+  <head>
+    <title>L10N Manager - Manage Projects</title>
+    <!--! Need to get the stylesheet on the template so that trac's admin.css get's overriden  -->
+    <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
+  </head>
+  <body>
+    <h2>Manage Projects</h2>
+
+    <div class="system-message" py:if="defined('error')">
+      <span class="system-message">$error</span>
+    </div>
+
+    <form action="" name="new_project" id="new_project" method="post">
+      <fieldset>
+        <legend>Add a new project</legend>
+        <div>
+          <table class="side_heads">
+            <tr>
+              <th><label for="name">Name:</label></th>
+              <td>
+                <input type="text" name="name" size="40"
+                       value="${defined('name') and name or None}"/>
+              </td>
+            </tr>
+            <tr>
+              <th>${ help_link('project_domain') } Catalog Domain:</th>
+              <td><input type="text" name="domain" size="40"
+                       value="${defined('domain') and domain or None}"/></td>
+            </tr>
+            <tr>
+              <th>${ help_link('project_copyright') } Copyright:</th>
+              <td><input type="text" name="copyright" size="40"
+                       value="${defined('copyright') and copyright or None}"/></td>
+            </tr>
+            <tr>
+              <th>${ help_link('project_bugs_address') } Bugs Address:</th>
+              <td><input type="text" name="bugs_address" size="40"
+                       value="${defined('bugs_address') and bugs_address or None}"/></td>
+            </tr>
+          </table>
+          <div class="buttons">
+            <input type="submit" name="add_project" value="Add Project"/>
+          </div>
+        </div>
+        <script type="text/javascript">
+          jQuery(document).ready(function($) {
+            $('fieldset').HideShow(${len(projects) > 1 and 'true' or None});
+            <py:if test="not projects">
+            $('fieldset legend:first a:first').click()
+            </py:if>
+          });
+        </script>
+      </fieldset>
+    </form>
+
+    <form action="" id="projects_listing" method="post" py:if="projects">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th class="sel">&nbsp;</th>
+            <th>Name</th>
+            <th>Domain</th>
+            <th>Copyright</th>
+            <th>Bugs Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr py:for="project in projects">
+            <td><input type="checkbox" value="$project.id" name="sel"/></td>
+            <td>$project.name</td>
+            <td>$project.domain</td>
+            <td>$project.copyright</td>
+            <td>$project.bugs_address</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="buttons">
+          <input type="submit" name="delete_selected" value="Remove Selected" />
+      </div>
+    </form>
+  </body>
+</html>

@@ -2,18 +2,21 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
-    xmlns:xi="http://www.w3.org/2001/XInclude">
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="layout.html" />
   <head>
     <title>Available Catalogs</title>
   </head>
-  <body py:if="not catalogs">
+  <body py:if="[p.catalogs for p in projects if p.catalogs]==[]">
     <h1>No available catalogs to translate</h1>
   </body>
-  <body py:if="catalogs">
-    <h1>Available Catalogs To Translate</h1>
+  <body py:if="[p.catalogs for p in projects if p.catalogs]!=[]">
     <div class="narrow_content">
-      <ul py:for="catalog in catalogs" class="catalogs">
+      <py:for each="project in projects">
+      <py:if test="project.localized">
+      <h1 i18n:msg="project_name">Catalogs to translate for $project.name</h1>
+      <ul py:for="catalog in project.catalogs" class="catalogs">
         <li class="catalog">
           <div class="info">
             <h2><a href="${req.href.translations(catalog.id)}">
@@ -22,6 +25,8 @@
           </div>
         </li>
       </ul>
+      </py:if>
+      </py:for>
     </div>
   </body>
 </html>

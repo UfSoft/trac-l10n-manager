@@ -17,8 +17,17 @@ version = 1
 
 metadata = sqla.MetaData()
 
+project_table = sqla.Table('l10n_projects', metadata,
+    sqla.Column('id', sqla.Integer, primary_key=True, autoincrement=True),
+    sqla.Column('name', sqla.Text, nullable=False, unique=True),
+    sqla.Column('domain', sqla.Text, nullable=False),
+    sqla.Column('copyright', sqla.Text),
+    sqla.Column('bugs_address', sqla.Text)
+)
+
 catalog_table = sqla.Table('l10n_catalogs', metadata,
     sqla.Column('id', sqla.Integer, primary_key=True, autoincrement=True),
+    sqla.Column('project_id', None, sqla.ForeignKey('l10n_projects.id')),
     sqla.Column('fpath', sqla.Text, nullable=False),
     sqla.Column('description', sqla.Text),
     sqla.Column('revision', sqla.Integer)
@@ -100,9 +109,26 @@ translation_vote_table = sqla.Table('l10n_translation_votes', metadata,
     sqla.UniqueConstraint('translation_id', 'sid')
 )
 
+class Project(object):
+    """Represents a localized project"""
+    def __init__(self, name, domain, copyright='', bugs_address=''):
+        self.name = name
+        self.domain = domain
+        self.copyright = copyright
+        self.bugs_address = bugs_address
+
+    @property
+    def localized(self):
+        localized = False
+        for catalog in self.catalogs:
+            if catalog.locales:
+                localized = True
+        return localized
+
 class Catalog(object):
     """Represents a catalog template"""
-    def __init__(self, fpath, description, revision):
+    def __init__(self, project, fpath, description, revision):
+        self.project = project
         self.fpath = fpath
         self.revision = revision
         self.description = description
@@ -253,6 +279,10 @@ class OverridenInstrumentedList(InstrumentedList):
         return attr_results
 
 
+mapper(Project, project_table, properties=dict(
+    catalogs = relation(Catalog, backref='project', lazy=False,
+                        cascade='all, delete, delete-orphan'),
+))
 
 mapper(Catalog, catalog_table, properties=dict(
     messages = dynamic_loader(MsgID, backref='catalog',

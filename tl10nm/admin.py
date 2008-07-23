@@ -31,6 +31,7 @@ class L10NAdminModule(Component):
     # IAdminPageProvider methods
     def get_admin_panels(self, req):
         if 'L10N_ADMIN' in req.perm:
+            yield ('translations', 'L10N Manager', 'projects', _('Projects'))
             yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
             yield ('translations', 'L10N Manager', 'locales', _('Locales'))
         elif 'L10N_MODERATE' in req.perm:
@@ -44,12 +45,16 @@ class L10NAdminModule(Component):
         add_script(req, 'tl10nm/js/tl10nm.js')
         add_script(req, 'tl10nm/js/jquery.jTipNG.js')
         add_script(req, 'tl10nm/js/jquery.tablescroller.js')
+        # add_stylesheet(req, 'tl10nm/css/l10n_style.css')
+        # Needs to be on the template so that trac's admin.css get's overridden
 
         if req.get_header('X-Requested-With'):
             # AJAX request
             self.log.debug('Got an AJAX Request: %r', req.args)
             if req.args.get('locale'):
                 self._return_locales_list(req)
+            elif req.args.get('project_catalogs'):
+                self._return_project_catalogs(req)
             else:
                 self._return_repo_paths_list(req)
 
@@ -57,6 +62,8 @@ class L10NAdminModule(Component):
             return self.handle_catalogs(req)
         elif page == 'locales':
             return self.handle_locales(req)
+        elif page == 'projects':
+            return self.handle_projects(req)
 
     # Internal/Custom methods
     def _return_repo_paths_list(self, req):
@@ -164,21 +171,24 @@ class L10NAdminModule(Component):
             elif req.args.get('add_catalog'):
                 data.update(self.add_catalog(req))
 
-        catalogs = session(self.env).query(Catalog).all()
-        data['catalogs'] = catalogs
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
+        data['projects'] = session(self.env).query(Project).all()
         return 'l10n_admin_catalogs.html', data
 
     def add_catalog(self, req):
         data = {}
         errors = []
-        fpath = req.args.get('fpath')
+        data['fpath'] = fpath = req.args.get('fpath')
+        data['project_id'] = project_id = req.args.get('project_id')
+
         def add_error(error):
             errors.append(error)
             data['error'] = tag.ul(*[tag.li(e) for e in errors])
-            data['fpath'] = fpath
             return data
+
+        if not project_id:
+            return add_error(_("You must first create a project"))
 
         if not fpath or fpath == '/':
             return add_error(_("You must define the catalog path"))
@@ -196,9 +206,11 @@ class L10NAdminModule(Component):
         if catalog:
             return add_error(_("Catalog already exists"))
 
+        project = Session.query(Project).get(int(project_id))
         description = req.args.get('description', '')
 
-        catalog = Catalog(fpath, description, repos.short_rev(node.rev))
+        catalog = Catalog(project, fpath, description,
+                          repos.short_rev(node.rev))
 
         messages = list(read_po(StringIO(node.get_content().read())))
 
@@ -227,7 +239,7 @@ class L10NAdminModule(Component):
                 location = MsgIDLocation(message, fname, lineno, href)
                 message.locations.append(location)
 
-        Session.save(catalog)
+        project.catalogs.append(catalog)
         Session.commit()
 
         return data
@@ -257,11 +269,8 @@ class L10NAdminModule(Component):
 
 
         data['known_users'] = self.env.get_known_users()
-
-        templates = session(self.env).query(Catalog).all()
-        data['catalog_templates'] = templates
-        locales = session(self.env).query(Locale).all()
-        data['locales'] = locales
+        data['projects'] = projects = session(self.env).query(Project).all()
+        data['locales'] = locales = session(self.env).query(Locale).all()
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_locales.html', data
@@ -390,3 +399,68 @@ class L10NAdminModule(Component):
                                  len(selected)))
         return {}
 
+    def handle_projects(self, req):
+        data = {}
+        if req.method == 'POST':
+            if req.args.get('delete_selected'):
+                data.update(self.delete_project(req))
+            elif req.args.get('add_project'):
+                data.update(self.add_project(req))
+
+        Session = session(self.env)
+        projects = data['projects'] = Session.query(Project).all()
+
+        return 'l10n_admin_projects.html', data
+
+    def _return_project_catalogs(self, req):
+        project_id = req.args.get('project_catalogs')
+        project = session(self.env).query(Project).get(int(project_id))
+
+        if not project:
+            raise TracError
+
+        if not project.catalogs:
+            req.write(tag.em('No catalogs available'))
+            raise RequestDone
+
+        req.write('<select name="catalog_template">')
+        for catalog in project.catalogs:
+            req.write(tag.option(catalog.fpath, value=catalog.id))
+        req.write('</select>')
+        raise RequestDone
+
+    def add_project(self, req):
+        data = {}
+        errors = []
+
+        data['name'] = name = req.args.get('name')
+        data['domain'] = domain = req.args.get('domain')
+        data['copyright'] = copyright = req.args.get('copyright')
+        data['bugs_address'] = bugs_address = req.args.get('bugs_address')
+
+        def add_error(error):
+            errors.append(error)
+            data['error'] = tag.ul(*[tag.li(e) for e in errors if e])
+            return data
+
+        if not name:
+            add_error(_('You must define a project name'))
+        if not domain:
+            add_error(_('You must define a catalog domain'))
+
+        if errors:
+            return add_error('')
+
+        Session = session(self.env)
+
+        if Session.query(Project).filter(project_table.c.name==name).first():
+            add_error(_('A project with that name exists. '
+                        'Please choose another one'), True)
+        project = Project(name, domain, copyright, bugs_address)
+        Session.save(project)
+        Session.commit()
+
+        return data
+
+    def delete_project(self, req):
+        pass
