@@ -104,14 +104,27 @@
       </fieldset>
     </form>
 
-    <h2 py:if="locales">Available Locales</h2>
+    <h2 py:if="projects">Available Locales</h2>
     <form action="" id="catalogs_listing" name="new_catalog"
-          method="post" py:if="locales">
+          method="post" py:if="projects">
       <table class="listing">
+      <py:for each="project in projects">
+      <py:if test="project.catalogs">
+        <thead>
+          <tr><th class="singleheader" colspan="8">$project.name</th></tr>
+        </thead>
+        <py:for each="catalog in project.catalogs">
+        <thead>
+          <tr>
+            <th class="singleheader" colspan="8">
+              Catalog: <a href="${req.href.translations(catalog.id)}">$catalog.fpath</a>
+              (<a href="${req.href.browser(catalog.fpath)}">source</a>)
+            </th>
+          </tr>
+        </thead>
         <thead>
           <tr>
             <th class="sel">&nbsp;</th>
-            <th>Catalog Template</th>
             <th>Locale</th>
             <th>Admins</th>
             <th>Statistics</th>
@@ -122,11 +135,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr py:for="locale in locales" py:if="req.authname in locale.admins">
+          <tr py:for="locale in catalog.locales" py:if="req.authname in locale.admins">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
-            <td>
-              <a href="${req.href.translations(locale.catalog.id)}">$locale.catalog.fpath</a>
-              (<a href="${req.href.browser(locale.catalog.fpath)}">source</a>)</td>
             <td>
               <a href="${req.href.translations(locale.catalog.id, locale.locale)}">$locale.locale</a>
             </td>
@@ -143,6 +153,9 @@
             </td>
           </tr>
         </tbody>
+        </py:for>
+      </py:if>
+      </py:for>
       </table>
       <div class="buttons">
           <input type="submit" name="delete_selected" value="Remove Selected" />

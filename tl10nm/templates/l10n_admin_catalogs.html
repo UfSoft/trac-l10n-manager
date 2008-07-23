@@ -82,8 +82,9 @@
           method="post" py:if="[p.catalogs for p in projects if p.catalogs]!=[]">
       <table class="listing">
         <py:for each="project in projects">
+        <py:if test="project.catalogs">
         <thead>
-          <tr><th class="projectname" colspan="4">$project.name</th></tr>
+          <tr><th class="singleheader" colspan="4">$project.name</th></tr>
         </thead>
         <thead>
           <tr>
@@ -107,6 +108,7 @@
             <td>$template.description</td>
           </tr>
         </tbody>
+        </py:if>
         </py:for>
       </table>
       <div class="buttons">

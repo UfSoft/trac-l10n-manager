@@ -267,10 +267,9 @@ class L10NAdminModule(Component):
             format = req.args.get('download')
             locale_id = req.args.get('locale_id')
 
-
+        Session = session(self.env)
         data['known_users'] = self.env.get_known_users()
-        data['projects'] = projects = session(self.env).query(Project).all()
-        data['locales'] = locales = session(self.env).query(Locale).all()
+        data['projects'] = projects = Session.query(Project).all()
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_locales.html', data

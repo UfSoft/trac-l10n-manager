@@ -29,13 +29,13 @@ table.listing td.stats, table.listing td.narrow, table.listing th.narrow {
   white-space: nowrap;
   width: 1%;
 }
-table.listing thead th.projectname {
+table.listing thead th.singleheader {
   padding-left: 15px;
   font-size: 110%;
   background-color: #d7dfff;
   border-style: outset;
-
 }
+table.listing thead th.singleheader a { padding-right: 0px; }
 
 ul.legend { list-style-type: none; padding-left: 0;}
 
