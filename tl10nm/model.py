@@ -2,8 +2,13 @@
 # vim: sw=4 ts=4 fenc=utf-8
 
 import time
+from tempfile import mkstemp
 
 from babel import Locale as BabelLocale
+from babel.messages.catalog import Catalog as BabelCatalog
+from babel.messages.catalog import Message, DEFAULT_HEADER
+from babel.messages.pofile import write_po
+from babel.messages.mofile import write_mo
 
 import sqlalchemy as sqla
 from sqlalchemy.orm import mapper, relation, dynamic_loader, backref, synonym
@@ -125,6 +130,14 @@ class Project(object):
                 localized = True
         return localized
 
+    @property
+    def mo_fname(self):
+        return "%s.mo" % self.domain
+
+    @property
+    def po_fname(self):
+        return "%s.po" % self.domain
+
 class Catalog(object):
     """Represents a catalog template"""
     def __init__(self, project, fpath, description, revision):
@@ -144,6 +157,39 @@ class MsgID(object):
     def split(self, split_by):
         return self.string.split(split_by)
 
+    def get_highest_voted_translation(self, locale):
+        translations = self.translations.filter(msgid_table.c.id==self.id). \
+                                            filter_by(locale_id=locale.id).all()
+        if not translations:
+            return None
+
+        votes = -1
+        higher_votes_translation = None
+        for translation in translations:
+            # SQL Sort translations by votes?
+            if translation.votes_count > votes:
+                higher_votes_translation = translation
+        return higher_votes_translation
+
+    def as_babel_message(self, locale):
+        locations = [(l.fname, l.lineno) for l in self.locations]
+        flags = [f.flag for f in self.flags]
+        auto_comments = [c.comment for c in self.comments]
+
+        if self.plural:
+            msgid = self.string, self.plural
+        else:
+            msgid = self.string
+
+        strings, user_comments = '', []
+        translation = self.get_highest_voted_translation(locale)
+        if translation:
+            strings, user_comments = translation.babelize()
+
+        message = Message(msgid, string=strings, locations=locations,
+                          flags=flags, auto_comments=auto_comments,
+                          user_comments=user_comments)
+        return message
 
 class MsgIDLocation(object):
     """Represents the catalog's msgid location on source"""
@@ -217,6 +263,53 @@ class Locale(object):
                 contributors.append(translation.sid)
         return contributors
 
+    def _build_catalog(self):
+        project = self.catalog.project
+        name = project.name
+        domain = project.domain
+        copyright = project.copyright
+        bugs_address = project.bugs_address
+        last_translator = None
+        contributors = []
+        messages = self.catalog.messages.filter_by(catalog_id=self.catalog.id)
+        from datetime import datetime
+        for message in messages:
+            translation = message.get_highest_voted_translation(self)
+            if translation:
+                sid = translation.sid
+                ts = datetime.utcfromtimestamp(translation.created).strftime('%Y')
+                if (sid, ts) not in contributors:
+                    contributors.append((sid, ts))
+        HEADER = DEFAULT_HEADER.splitlines()[:-2]
+        if contributors:
+            HEADER.extend(['#', '# Contributors:'] +
+                          ['# %s, %s' % sid for sid in contributors])
+            last_translator = contributors[-1][0]
+        HEADER.append('#')
+        catalog = BabelCatalog(self.locale, domain, header_comment='\n'.join(HEADER),
+                               project=name,
+                               copyright_holder=copyright,
+                               msgid_bugs_address=bugs_address,
+                               fuzzy=False,
+                               last_translator=last_translator)
+        for message in messages:
+            catalog[message.id] = message.as_babel_message(self)
+        return catalog
+
+    def get_pofile(self):
+        tempfile = mkstemp('.txt')
+        catalog = self._build_catalog()
+        write_po(open(tempfile[1], 'w'), catalog)
+        return tempfile
+
+    def get_mofile(self):
+        catalog = self._build_catalog()
+        tempfile = mkstemp('.mo')
+        fileobj = open(tempfile[1], 'w')
+        write_mo(fileobj, catalog, use_fuzzy=False)
+        return tempfile
+
+
 class LocaleAdmin(object):
     def __init__(self, locale, sid):
         self.locale = locale
@@ -234,6 +327,14 @@ class Translation(object):
     @property
     def votes_count(self):
         return sum([v.vote for v in self.votes])
+
+    def babelize(self):
+        strings = [s.string for s in self.strings]
+        if len(strings) < 2:
+            strings = strings[0]
+        else:
+            strings = tuple(strings)
+        return strings, [uc.comment for uc in self.comments]
 
 class TranslationString(object):
     """Represents a catalog's translation string"""
@@ -330,6 +431,12 @@ mapper(Translation, translation_table, properties=dict(
                            cascade='all, delete, delete-orphan')
 ))
 
-mapper(TranslationString, translation_string_table)
-mapper(TranslationComment, translation_comment_table)
+mapper(TranslationString, translation_string_table,
+       order_by=[translation_string_table.c.translation_id,
+                 translation_string_table.c.index,
+                 translation_string_table.c.string])
+
+mapper(TranslationComment, translation_comment_table,
+       order_by=[translation_comment_table.c.translation_id,
+                 translation_comment_table.c.comment])
 mapper(TranslationVote, translation_vote_table)

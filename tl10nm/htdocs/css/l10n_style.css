@@ -1,4 +1,4 @@
-.narrow_content { padding-left: 20px; padding-right: 20px; }
+.narrow_content { padding-left: 20px; padding-right: 20px;  padding-bottom: 20px; }
 
 fieldset.fuzzy { background-color: #fff6f5; }
 fieldset.notfuzzy { background-color: #eeffea; }

@@ -50,14 +50,14 @@
             <tr>
               <th><label for="fpath">Catalog Path:</label></th>
               <td>
-                <input type="text" name="fpath" id="fpath" size="40"
+                <input type="text" name="fpath" id="fpath" size="60"
                        value="${defined('fpath') and fpath or '/'}"/>
                 ${ help_link('admin_catalog_path') }
               </td>
             </tr>
             <tr>
               <th>Description</th>
-              <td><textarea name="description" cols="60" rows="6"></textarea></td>
+              <td><input type="text" name="description" size="60"/></td>
             </tr>
           </table>
           <div class="buttons">

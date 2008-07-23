@@ -32,7 +32,10 @@
         </thead>
         <tbody>
           <tr>
-            <td class="narrow"><a href="${req.href.translations(catalog.id)}">$catalog.fpath</a></td>
+            <td class="narrow">
+              <a href="${req.href.translations(catalog.id)}">$catalog.fpath</a>
+              (<a href="${req.href.browser(catalog.fpath)}">source</a>)
+            </td>
             <td>$catalog.description</td>
             <td><py:for each="idx, locale in enumerate(catalog.locales)">
               <a href="${req.href.translations(catalog.id, locale.locale)}">

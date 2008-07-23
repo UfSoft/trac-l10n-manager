@@ -34,10 +34,12 @@ class L10NAdminModule(Component):
             yield ('translations', 'L10N Manager', 'projects', _('Projects'))
             yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
             yield ('translations', 'L10N Manager', 'locales', _('Locales'))
+            yield ('translations', None, 'downloads', None)
         elif 'L10N_MODERATE' in req.perm:
             # Is user a manager of any locale
             if session(self.env).query(LocaleAdmin).get_by(sid=req.authname):
                 yield ('translations', 'L10N Manager', 'locales', _('Locales'))
+                yield ('translations', 'L10N Manager', 'downloads', 'a')
 
     def render_admin_panel(self, req, cat, page, path_info):
         req.perm.require('L10N_MODERATE', 'L10N_ADMIN')
@@ -64,6 +66,8 @@ class L10NAdminModule(Component):
             return self.handle_locales(req)
         elif page == 'projects':
             return self.handle_projects(req)
+        elif page == 'downloads':
+            return self.handle_downloads(req, path_info)
 
     # Internal/Custom methods
     def _return_repo_paths_list(self, req):
@@ -263,13 +267,10 @@ class L10NAdminModule(Component):
             elif req.args.get('add_locale'):
                 data.update(self.add_locale(req))
 
-        if 'download' in req.args:
-            format = req.args.get('download')
-            locale_id = req.args.get('locale_id')
-
         Session = session(self.env)
         data['known_users'] = self.env.get_known_users()
         data['projects'] = projects = Session.query(Project).all()
+
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
         return 'l10n_admin_locales.html', data
@@ -463,3 +464,14 @@ class L10NAdminModule(Component):
 
     def delete_project(self, req):
         pass
+
+    def handle_downloads(self, req, path_info):
+        locale_id, fname = path_info.split('/')
+        locale = session(self.env).query(Locale).get(int(locale_id))
+        if fname.endswith('.po'):
+            tmpfile = locale.get_pofile()
+        elif fname.endswith('.mo'):
+            tmpfile = locale.get_mofile()
+        else:
+            raise TracError(_('Unknown download'))
+        req.send_file(tmpfile[1])
