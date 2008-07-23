@@ -6,27 +6,45 @@
     xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="layout.html" />
   <head>
-    <title>Available Catalogs</title>
+    <title>Available Translations</title>
   </head>
   <body py:if="[p.catalogs for p in projects if p.catalogs]==[]">
     <h1>No available catalogs to translate</h1>
   </body>
   <body py:if="[p.catalogs for p in projects if p.catalogs]!=[]">
+    <h1>Available Translations</h1>
     <div class="narrow_content">
+      <table class="listing" py:if="projects">
       <py:for each="project in projects">
       <py:if test="project.localized">
-      <h1 i18n:msg="project_name">Catalogs to translate for $project.name</h1>
-      <ul py:for="catalog in project.catalogs" class="catalogs">
-        <li class="catalog">
-          <div class="info">
-            <h2><a href="${req.href.translations(catalog.id)}">
-              Catalog: <em>$catalog.fpath</em></a></h2>
-            <em>$catalog.description</em>
-          </div>
-        </li>
-      </ul>
+        <thead>
+          <tr>
+            <th class="singleheader" colspan="3">$project.name</th>
+          </tr>
+        </thead>
+        <py:for each="catalog in project.catalogs">
+        <thead>
+          <tr>
+            <th>Catalog Path</th>
+            <th>Catalog Description</th>
+            <th>Available Locales</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="narrow"><a href="${req.href.translations(catalog.id)}">$catalog.fpath</a></td>
+            <td>$catalog.description</td>
+            <td><py:for each="idx, locale in enumerate(catalog.locales)">
+              <a href="${req.href.translations(catalog.id, locale.locale)}">
+                $locale.locale</a><span py:strip="" py:if="idx!=len(catalog.locales)-1">, </span></py:for>
+            </td>
+          </tr>
+        </tbody>
+        </py:for>
       </py:if>
       </py:for>
+      </table>
     </div>
+
   </body>
 </html>
