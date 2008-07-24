@@ -9,9 +9,12 @@ __license__     = 'BSD'
 __url__         = 'http://tl10nm.ufsoft.org'
 __summary__     = 'Localization Manager Trac plugin'
 __description__ = """\
-Localization Manager Trac plugin:
-    * Allows users to provide translations for managed catalogs.
-    * Allow admins to download the translations in PO or MO gettext format"""
+L10N Manager Trac Plugin
+========================
+
+ * Allows users to provide translations for managed catalogs.
+ * Allow admins to download the translations in PO or MO gettext format
+ """
 
 # -------------------------- import package modules ----------------------------
 import admin, resources, web_ui, perm, help, model
