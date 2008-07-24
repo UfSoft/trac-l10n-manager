@@ -1,0 +1,19 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <!-- Set up the translatable JS strings -->
+  <script TYPE="text/javascript">
+    jQuery(document).ready( function ($) {
+      $(document).hijaxLinkRequest.messages = {
+        ajaxError: '${_("An error ocurred while trying to contact server")}'
+      };
+      $(document).projectCatalogOptions.messages = {
+        error: '${_("Failed to get catalog templates from server")}',
+      };
+      $(document).jTipNG.messages = {
+        followTooltip: "${_('Follow Tooltip')}",
+        ajaxErrorMessage: "${_('Ajax request to server failed')}",
+        errorTitle: "${_('ERROR')}"
+      };
+    });
+  </script>
+</div>

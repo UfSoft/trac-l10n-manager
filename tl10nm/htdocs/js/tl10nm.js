@@ -99,11 +99,10 @@
     };
 
     $.fn.projectCatalogOptions = function (mainurl, output_div) {
+        var messages = $.extend({}, $.fn.projectCatalogOptions.messages);
         return this.each( function() {
             var insertError = function () {
-                $(output_div).addClass('system-message').html(
-                    "Failed to get catalog templates from server"
-                );
+                $(output_div).addClass('system-message').html(messages.error);
             };
 
             var insertHtml = function(data) {
@@ -117,8 +116,12 @@
                     success: insertHtml
                 });
             });
-            $(this).change();
+            $(this).change(); // Force retrieval of initial options
         });
+    };
+
+    $.fn.projectCatalogOptions.messages = {
+        error: "Failed to get catalog templates from server"
     };
 
     function findOutputDivParent(elem) {

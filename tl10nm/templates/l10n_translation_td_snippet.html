@@ -13,9 +13,6 @@
     ${ help_link('fuzzy_translation', 'floated')}
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
-        $(document).hijaxLinkRequest.messages = {
-          ajaxError: "${_('We have an error')}"
-        };
         $('#translation-$translation.id a.fuzzy').hijaxLinkRequest({ progress: true });
         $('a.jTip').jTipNG();
       });
@@ -41,7 +38,7 @@
         <th>Created:</th>
         <td>${ pretty_timedelta(translation.created) }</td>
       </tr>
-      <tr>
+      <tr py:if="not translation.fuzzy">
         <th>Votes and Voters:</th>
         <td><xi:include href="l10n_vote_td_snippet.html"/></td>
       </tr>

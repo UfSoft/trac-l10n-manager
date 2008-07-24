@@ -4,12 +4,13 @@
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns:i18n="http://genshi.edgewall.org/i18n">
-  <xi:include href="layout.html" />
-  <xi:include href="l10n_macros.html" />
+  <xi:include href="layout.html"/>
+  <xi:include href="l10n_macros.html"/>
   <head>
     <title>Translations</title>
   </head>
   <body>
+    <xi:include href="tl10nm_js_messages.html"/>
     <div id="content" class="translations narrow_content">
       <xi:include href="l10n_contributors_and_admins.html"/>
       <py:if test="messages">
@@ -30,12 +31,6 @@
     </div>
     <script type="text/javascript">
       jQuery(document).ready( function($) {
-        <!--! Set up the translatable JS strings -->
-        $(document).jTipNG.messages = {
-          followTooltip: "${_('Follow Tooltip')}",
-          ajaxErrorMessage: "${_('Ajax request to server failed')}",
-          errorTitle: "${_('ERROR')}"
-        };
         $('a.jTip').jTipNG();
       })
     </script>
