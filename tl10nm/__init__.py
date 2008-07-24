@@ -14,7 +14,7 @@ L10N Manager Trac Plugin
 
  * Allows users to provide translations for managed catalogs.
  * Allow admins to download the translations in PO or MO gettext format
- """
+"""
 
 # -------------------------- import package modules ----------------------------
 import admin, resources, web_ui, perm, help, model
