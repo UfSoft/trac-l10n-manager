@@ -34,7 +34,7 @@ class WeakReferenceRenderer(object):
 
 class L10NManagerHelpModule(Component):
     implements(IRequestHandler)
-
+    env = log = config = None # make pylint happy
     available_templates = {}
     rendered_templates = WeakValueDictionary()
 

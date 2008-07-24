@@ -7,22 +7,23 @@ __email__       = 'ufs@ufsoft.org'
 __package__     = 'TracL10nManagerPlugin'
 __license__     = 'BSD'
 __url__         = 'http://tl10nm.ufsoft.org'
-__summary__     = 'Trac plugin to handle message catalogs'
-# XXX: extend description
-__description__ = 'Trac plugin to handle message catalogs'
+__summary__     = 'Localization Manager Trac plugin'
+__description__ = """\
+Localization Manager Trac plugin:
+    * Allows users to provide translations for managed catalogs.
+    * Allow admins to download the translations in PO or MO gettext format"""
 
-# -------------------------- import modules ------------------------------------
-import admin, resources, web_ui, perm, help
+# -------------------------- import package modules ----------------------------
+import admin, resources, web_ui, perm, help, model
 
 # -------------------- Database Init/Upgrade Code ------------------------------
-from trac.core import *
+from trac.core import Component, implements
 from trac.env import IEnvironmentSetupParticipant
 from tracext.sa import engine
 
-from tl10nm import model
-
 class TracL10nManagerSetup(Component):
     implements(IEnvironmentSetupParticipant)
+    env = log = config = None # Make pylint happier
 
     # IEnvironmentSetupParticipant Methods
     def environment_created(self):

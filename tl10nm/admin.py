@@ -25,6 +25,7 @@ from tl10nm.model import *
 
 
 class L10NAdminModule(Component):
+    env = log = config = None # make pylint happy
     implements(IAdminPanelProvider)
     hrefs_cache = {}
 
@@ -470,8 +471,9 @@ class L10NAdminModule(Component):
         locale = session(self.env).query(Locale).get(int(locale_id))
         if fname.endswith('.po'):
             tmpfile = locale.get_pofile()
+            req.send_file(tmpfile[1], mimetype='text/x-gettext')
         elif fname.endswith('.mo'):
             tmpfile = locale.get_mofile()
+            req.send_file(tmpfile[1], mimetype='application/x-gettext')
         else:
             raise TracError(_('Unknown download'))
-        req.send_file(tmpfile[1])

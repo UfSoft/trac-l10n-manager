@@ -11,8 +11,7 @@ from babel.messages.pofile import write_po
 from babel.messages.mofile import write_mo
 
 import sqlalchemy as sqla
-from sqlalchemy.orm import mapper, relation, dynamic_loader, backref, synonym
-from sqlalchemy.orm import eagerload
+from sqlalchemy.orm import mapper, relation, dynamic_loader, synonym
 from sqlalchemy.orm.collections import InstrumentedList
 
 from tracext.sa import session
@@ -116,6 +115,7 @@ translation_vote_table = sqla.Table('l10n_translation_votes', metadata,
 
 class Project(object):
     """Represents a localized project"""
+    id = catalogs = None # Make pylint happy
     def __init__(self, name, domain, copyright='', bugs_address=''):
         self.name = name
         self.domain = domain
@@ -140,6 +140,7 @@ class Project(object):
 
 class Catalog(object):
     """Represents a catalog template"""
+    id = messages = locales = None # Make pylint happy
     def __init__(self, project, fpath, description, revision):
         self.project = project
         self.fpath = fpath
@@ -148,6 +149,7 @@ class Catalog(object):
 
 class MsgID(object):
     """Represents a catalog's msgid"""
+    id = locations = comments = flags = translations = None # Make pylint happy
     def __init__(self, catalog, string, plural, context):
         self.catalog = catalog
         self.string = string
@@ -223,6 +225,7 @@ class MsgIDFlag(object):
 
 class Locale(object):
     """Represents a locale catalog"""
+    id = translations = admins = None # Make pylint happy
     def __init__(self, catalog, locale, num_plurals):
         self.catalog = catalog
         self.locale = locale
@@ -311,12 +314,14 @@ class Locale(object):
 
 
 class LocaleAdmin(object):
+    id = locales = None # Make pylint happy
     def __init__(self, locale, sid):
         self.locale = locale
         self.sid = sid
 
 class Translation(object):
     """Represents a catalog's translation"""
+    id = strings = comments = votes = None # Make pylint happy
     def __init__(self, locale, msgid, sid, fuzzy=False, created=None):
         self.locale = locale
         self.msgid = msgid

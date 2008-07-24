@@ -20,7 +20,8 @@ from tracext.sa import session
 from tl10nm.model import *
 
 class L10nModule(Component):
-    implements(INavigationContributor, IRequestHandler) #, IRequestFilter)
+    implements(INavigationContributor, IRequestHandler)
+    env = log = config = None # make pylint happy
 
     # IPermissionRequestor
     def get_permission_actions(self):
