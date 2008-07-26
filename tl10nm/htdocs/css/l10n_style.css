@@ -203,3 +203,20 @@ a.showhide {
   text-decoration: none;
   border: none;
 }
+
+ul.floated { margin: 0; padding: 0; }
+ul.floated li {
+  display: block;
+  margin-left: 5px;
+  height: 20px;
+  padding: 2px;
+}
+ul.floated li span {  white-space: nowrap; }
+ul.floated li a{
+  border: none;
+  display: block;
+}
+
+div.info {
+  background-color: #d0daff;
+}

@@ -18,9 +18,11 @@
 
   <py:def function="render_message(catalog, locale, message, show_link=True)">
     <fieldset class="message">
+      <py:if test="not message.is_translator(locale, req.authname)">
       <span class="floated" py:if="('L10N_ADD' in req.perm) and show_link">
         <a href="${ req.href.translate(catalog.id, locale.locale, message.id) }">Translate</a>
       </span>
+      </py:if>
       <table class="message">
         <tr>
           <th>${ help_link('original_message')} Original:</th>
@@ -42,7 +44,7 @@
             >${ breaklines(comment.comment) }<br/></py:for></td>
         </tr>
         <tr py:if="message.flags">
-          <th>Flags:</th><td>${ ', '.join([str(f) for f in message.flags]) }</td>
+          <th>${ help_link('message_flags')} Flags:</th><td>${ ', '.join([str(f) for f in message.flags]) }</td>
         </tr>
         ${ render_translation_fields(catalog, locale, message) }
       </table>
@@ -63,7 +65,8 @@
   </py:def>
 
   <py:def function="help_link(help_about, aditional_classes='')">
-    <a href="${req.href.l10nhelp(help_about)}"
+     <!--! Skip these links when TABbing by setting tabindex to -1. Not supported by all browsers  -->
+    <a href="${req.href.l10nhelp(help_about)}" tabindex="-1"
        class="jTip $aditional_classes" title="Click for help"
        py:if="'L10N_ADD' in req.perm">
       <img src="${req.href.chrome('tl10nm/img/info.png')}"/>

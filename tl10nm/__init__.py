@@ -17,7 +17,7 @@ L10N Manager Trac Plugin
 """
 
 # -------------------------- import package modules ----------------------------
-import admin, resources, web_ui, perm, help, model
+import admin, resources, web_ui, perm, help, model, forms
 
 # -------------------- Database Init/Upgrade Code ------------------------------
 from trac.core import Component, implements

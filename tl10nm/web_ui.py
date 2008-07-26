@@ -9,10 +9,10 @@ from genshi.builder import tag
 from trac.core import *
 from trac.util.presentation import Paginator
 from trac.util.translation import _
-from trac.web import IRequestHandler, IRequestFilter, ITemplateStreamFilter
+from trac.web import IRequestHandler
 from trac.web.chrome import INavigationContributor, ResourceNotFound
-from trac.web.chrome import add_link, add_stylesheet, add_script, add_ctxtnav
-from trac.web.chrome import add_warning, add_notice, Chrome
+from trac.web.chrome import add_link, add_stylesheet, add_script
+from trac.web.chrome import Chrome
 from trac.web.main import RequestDone
 
 from tracext.sa import session
@@ -47,10 +47,10 @@ class L10nModule(Component):
 
     def process_request(self, req):
         req.perm.require('L10N_VIEW')
-        add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         add_script(req, 'tl10nm/js/tl10nm.js')
         add_script(req, 'tl10nm/js/jquery.jTipNG.js')
         add_script(req, 'tl10nm/js/jquery.blockUI.js')
+        add_stylesheet(req, 'tl10nm/css/l10n_style.css')
 
         if req.path_info.startswith('/translations'):
             return self.process_translations_request(req)
@@ -92,10 +92,9 @@ class L10nModule(Component):
         if not locale:
             req.redirect(req.href.translations(catalog_id))
 
-
         data = {'locale': locale, 'catalog_id': catalog_id}
 
-        paginator = Paginator(list(locale.catalog.messages), page-1, 3)
+        paginator = Paginator(list(locale.catalog.messages), page-1, 5)
         data['messages'] = paginator
         shown_pages = paginator.get_shown_pages(25)
         pagedata = []
@@ -177,6 +176,13 @@ class L10nModule(Component):
             translation.fuzzy = True
             Session.commit()
             html_template = 'l10n_translation_td_snippet.html'
+        elif action == 'delete':
+            # Force a browser cache ignore
+            req.send_header('Expires', 'Fri, 01 Jan 1999 00:00:00 GMT')
+            html_template = 'l10n_translation_td_snippet.html'
+            data['translation'] = None
+            Session.delete(translation)
+            Session.commit()
         else:
             raise ResourceNotFound("Bad URL")
 
@@ -224,15 +230,33 @@ class L10nModule(Component):
 
         if not msgid_id:
             # Provide a random translation to the user
-            data['message'] = Session.query(MsgID).get(random.choice(ids))
+            data['message'] = message = Session.query(MsgID).get(
+                                                            random.choice(ids))
         else:
-            data['message'] = Session.query(MsgID).get(int(msgid_id))
+            data['message'] = message = Session.query(MsgID).get(int(msgid_id))
 
 
         if req.method == 'POST':
+            babel_message = message.babelize(locale)
+            if message.plural:
+                strings = []
+                for idx in range(locale.num_plurals):
+                    strings.append(req.args.get('translation-%d' % idx))
+                babel_message.string = tuple(strings)
+            else:
+                babel_message.string = req.args.get('translation')
+
+            errors = babel_message.check()
+
+            if errors:
+                req.args['form_fill'] = True # Fill in the form for us
+                data['translation_errors'] = tag.ul(*[tag.li(e) for e in errors])
+                return 'l10n_translate_message.html', data, None
+
             translation = Translation(locale, message, req.authname)
             comment = TranslationComment(translation, req.args.get('comment'))
-            translation.comments.append(comment)
+            if comment:
+                translation.comments.append(comment)
             if message.plural:
                 for idx in range(locale.num_plurals):
                     string = req.args.get('translation-%d' % idx)
