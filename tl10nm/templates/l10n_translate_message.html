@@ -22,21 +22,38 @@
         ${ render_message(message.catalog, locale, message, False) }
         <fieldset class="translation">
           <legend>Translate Message</legend>
+          <div class="system-message" py:if="translation_errors">
+            $translation_errors
+          </div>
           <table class="translations" style="float: left; width: 90%;">
             <tr>
               <th>${ help_link('translator_comment')} Translation Comment:</th>
-              <td><input type="text" name="comment" value="$comment" size="60"/></td>
+              <td><input type="text" name="comment" value="$comment" size="70"/></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <div class="system-message info">
+                  <b>Attention: </b> All white-space used on translations will
+                  be kept, that means leading and trailing white-space.
+                </div>
+              </td>
             </tr>
             <tr py:if="not message.plural">
-              <th>${ help_link('translation_index_0')} New Translation:</th>
-              <td><textarea name="translation" rows="6" cols="70"/></td>
+              <th>New Translation:</th>
+              <td>
+                <textarea py:if="message.multiline" name="translation" rows="6" cols="70"/>
+                <input py:if="not message.multiline" type="text" size="70" name="translation"/>
+              </td>
             </tr>
             <tr py:if="message.plural" py:for="idx in range(locale.num_plurals)" >
               <th>
-                ${ help_link('translation_index_%s' % (idx==0 and '0' or 'n'))}
+                ${ help_link('translation_indexes') }
                 ${ _('New Translation [%d]:') % idx}
               </th>
-              <td><textarea name="translation-$idx" rows="6" cols="70"/></td>
+              <td>
+                <textarea py:if="message.multiline" name="translation-$idx" rows="6" cols="70"/>
+                <input py:if="not message.multiline" type="text" size="70" name="translation-$idx"/>
+              </td>
             </tr>
           </table>
         </fieldset>
