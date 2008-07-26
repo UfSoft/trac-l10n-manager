@@ -1,23 +1,26 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+  <py:if test="translation">
   <xi:include href="l10n_macros.html" />
   <div id="translation-$translation.id">
   <fieldset class="${translation.fuzzy and 'fuzzy' or 'notfuzzy'}"
             title="${translation.fuzzy and _('Translation is Fuzzy') or None}">
-    <a class="floated hijax fuzzy" py:if="not translation.fuzzy"
-       href="${req.href.translation('mark_fuzzy', translation.id,
-                                    redirect_back=req.path_info + '#translation-%d' % translation.id)}">
-      Mark this as a bad translation
-    </a>
-    ${ help_link('fuzzy_translation', 'floated')}
+    <span class="floated">
+      <a class="floated hijax fuzzy" py:if="not translation.fuzzy"
+         href="${req.href.translation('mark_fuzzy', translation.id,
+                                      redirect_back=req.path_info + '#translation-%d' % translation.id)}">
+        Mark this as a bad translation
+      </a>
+      <span py:if="translation.fuzzy">Translation is Fuzzy</span>
+      ${ help_link('fuzzy_translation', 'floated')}
+    </span>
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
         $('#translation-$translation.id a.fuzzy').hijaxLinkRequest({ progress: true });
         $('a.jTip').jTipNG();
       });
     </script>
-    <span class="floated" py:if="translation.fuzzy">Translation is Fuzzy</span>
     <table class="translation">
       <tr py:if="translation.comments">
         <th>Translator Comment:</th>
@@ -43,6 +46,14 @@
         <td><xi:include href="l10n_vote_td_snippet.html"/></td>
       </tr>
     </table>
+    <span py:if="translation.sid==req.authname or
+                 req.authname in translation.locale.admins or
+                 req.perm.require('L10N_ADMIN', 'TRAC_ADMIN')" class="floated">
+        <a class="hijax" href="${req.href.translation('delete', translation.id, redirect_back=req.path_info)}">
+          Delete Translation
+        </a>
+    </span>
   </fieldset>
   </div>
+  </py:if>
 </div>
