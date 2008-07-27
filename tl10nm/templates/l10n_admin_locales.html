@@ -135,12 +135,16 @@
           </tr>
         </thead>
         <tbody>
-          <tr py:for="locale in catalog.locales" py:if="req.authname in locale.admins">
+          <tr py:for="locale in catalog.locales"
+              py:if="req.authname in locale.admins or 'L10N_ADMIN' in req.perm">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
             <td>
               <a href="${req.href.translations(locale.catalog.id, locale.locale)}">$locale.locale</a>
             </td>
-            <td>${ ', '.join([admin.sid for admin in locale.admins])}</td>
+            <td>
+              ${ ', '.join([admin.sid for admin in locale.admins])}
+              (<a href="${req.href.admin('translations', 'admins', locale.id)}">edit</a>)
+            </td>
             <td class="narrow">${ render_stats_graph(locale) }</td>
             <td class="narrow">$locale.translated</td>
             <td class="narrow">$locale.fuzzy</td>

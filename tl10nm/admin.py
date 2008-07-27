@@ -7,6 +7,7 @@ from operator import attrgetter
 
 from trac.admin.api import IAdminPanelProvider
 from trac.core import *
+from trac.perm import PermissionSystem
 from trac.resource import ResourceNotFound
 from trac.util.translation import _, ngettext
 from trac.versioncontrol import NoSuchChangeset, NoSuchNode
@@ -35,12 +36,14 @@ class L10NAdminModule(Component):
             yield ('translations', 'L10N Manager', 'projects', _('Projects'))
             yield ('translations', 'L10N Manager', 'catalogs', _('Catalogs'))
             yield ('translations', 'L10N Manager', 'locales', _('Locales'))
-            yield ('translations', None, 'downloads', None)
+            yield ('translations', 'L10N Manager', 'downloads', None)
+            yield ('translations', 'L10N Manager', 'admins', None)
         elif 'L10N_MODERATE' in req.perm:
             # Is user a manager of any locale
             if session(self.env).query(LocaleAdmin).get_by(sid=req.authname):
                 yield ('translations', 'L10N Manager', 'locales', _('Locales'))
-                yield ('translations', 'L10N Manager', 'downloads', 'a')
+                yield ('translations', None, 'downloads', None)
+                yield ('translations', None, 'admins', None)
 
     def render_admin_panel(self, req, cat, page, path_info):
         req.perm.require('L10N_MODERATE', 'L10N_ADMIN')
@@ -63,6 +66,8 @@ class L10NAdminModule(Component):
 
         if page == 'catalogs':
             return self.handle_catalogs(req)
+        elif page == 'admins':
+            return self.handle_edit_locale_admins(req, path_info)
         elif page == 'locales':
             return self.handle_locales(req)
         elif page == 'projects':
@@ -311,9 +316,18 @@ class L10NAdminModule(Component):
         locale = Locale(catalog, locale, num_plurals)
         for sid in locale_admins:
             locale.admins.append(LocaleAdmin(locale, sid))
+
         catalog.locales.append(locale)
 
         Session.commit()
+
+        perm = PermissionSystem(self.env)
+        for admin in locale.admins:
+            if not 'L10N_MODERATE' in perm.get_user_permissions(admin.sid):
+                add_error(tag(_("'%s' does not have required permissions to "
+                                "administrate. ") % admin.sid,
+                              tag.a(_('update permissions'),
+                                    href=req.href.admin('general', 'perm'))))
 
         add_notice(req, _("Locale added."))
 
@@ -477,3 +491,51 @@ class L10NAdminModule(Component):
             req.send_file(tmpfile[1], mimetype='application/x-gettext')
         else:
             raise TracError(_('Unknown download'))
+
+    def handle_edit_locale_admins(self, req, path_info):
+        Session = session(self.env)
+        locale = Session.query(Locale).get(int(path_info.strip('/')))
+        known_users = self.env.get_known_users()
+        errors = []
+        perm = PermissionSystem(self.env)
+        for admin in locale.admins:
+            if not 'L10N_MODERATE' in perm.get_user_permissions(admin.sid):
+                errors.append(
+                    tag(_("'%s' does not have required permissions to "
+                          "administrate. ") % admin.sid,
+                        tag.a(_('update permissions'),
+                              href=req.href.admin('general', 'perm'))))
+
+        if req.method == 'POST' and len(req.args.getlist('admins')) >= 1:
+            current_admins = req.args.getlist('current_admins')
+            selected = req.args.getlist('admins')
+
+            self.log.debug('Current Admins: %s', current_admins)
+            self.log.debug('Selected Admins: %s', selected)
+
+            allow_delete_admins = len(selected) >= 1
+            if not allow_delete_admins:
+                errors.append(
+                    tag(_("There must be at least on admin for each locale.")))
+
+            for admin in current_admins:
+                if not allow_delete_admins:
+                    break
+                if admin not in selected:
+                    locale_admin = Session.query(LocaleAdmin). \
+                        filter(locale_admin_table.c.sid==admin).first()
+                    Session.delete(locale_admin)
+            for admin in selected:
+                if admin not in locale.admins:
+                    locale.admins.append(LocaleAdmin(locale, admin))
+            Session.commit()
+            req.redirect(req.href.admin('translations', 'locales'))
+        elif req.method == 'POST' and len(req.args.getlist('admins')) < 1:
+            errors.append(
+                tag(_("There must be at least on admin for each locale.")))
+
+        data = {'locale': locale, 'known_users': known_users}
+        if errors:
+            data['error'] = tag.ul(*[tag.li(e) for e in errors if e])
+
+        return 'l10n_admin_locale_admins.html', data
