@@ -156,6 +156,11 @@ class MsgID(object):
         self.plural = plural
         self.context = context
 
+    def is_translator(self, locale, sid):
+        return self.translations.filter(
+            msgid_table.c.id==self.id).filter_by(
+                sid=sid).filter_by(locale_id=locale.id).first()
+
     def split(self, split_by):
         return self.string.split(split_by)
 
@@ -173,7 +178,7 @@ class MsgID(object):
                 higher_votes_translation = translation
         return higher_votes_translation
 
-    def as_babel_message(self, locale):
+    def babelize(self, locale):
         locations = [(l.fname, l.lineno) for l in self.locations]
         flags = [f.flag for f in self.flags]
         auto_comments = [c.comment for c in self.comments]

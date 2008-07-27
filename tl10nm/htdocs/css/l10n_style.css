@@ -53,7 +53,7 @@ table.translations th, table.message th {
   padding-right: 5px;
 }
 
-.floated { float: right; white-space: nowrap; padding: 3px;}
+.floated { float: right; white-space: nowrap; padding: 3px; clear: right; }
 
 
 /* Styles for the catalogs list */

@@ -10,10 +10,19 @@
       <a class="floated hijax fuzzy" py:if="not translation.fuzzy"
          href="${req.href.translation('mark_fuzzy', translation.id,
                                       redirect_back=req.path_info + '#translation-%d' % translation.id)}">
-        Mark this as a bad translation
-      </a>
-      <span py:if="translation.fuzzy">Translation is Fuzzy</span>
-      ${ help_link('fuzzy_translation', 'floated')}
+        Mark this as a bad translation</a>
+      <span py:if="translation.fuzzy" py:strip="">Translation is Fuzzy</span> ${ help_link('fuzzy_translation')}
+    </span>
+    <span class="floated" py:if="translation.sid==req.authname or
+                                 req.authname in translation.locale.admins or
+                                 req.perm.require('L10N_ADMIN', 'TRAC_ADMIN')">
+      <a class="hijax" href="${req.href.translation('delete', translation.id, redirect_back=redirect_back or req.path_info)}">
+        Delete Translation</a>
+      <script TYPE="text/javascript">
+        jQuery(document).ready( function($) {
+          $('#translation-$translation.id a.hijax').hijaxLinkRequest();
+        });
+      </script>
     </span>
     <script TYPE="text/javascript">
       jQuery(document).ready( function($) {
@@ -46,13 +55,6 @@
         <td><xi:include href="l10n_vote_td_snippet.html"/></td>
       </tr>
     </table>
-    <span py:if="translation.sid==req.authname or
-                 req.authname in translation.locale.admins or
-                 req.perm.require('L10N_ADMIN', 'TRAC_ADMIN')" class="floated">
-        <a class="hijax" href="${req.href.translation('delete', translation.id, redirect_back=req.path_info)}">
-          Delete Translation
-        </a>
-    </span>
   </fieldset>
   </div>
   </py:if>

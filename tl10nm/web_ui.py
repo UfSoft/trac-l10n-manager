@@ -137,7 +137,7 @@ class L10nModule(Component):
         Session = session(self.env)
 
         translation = Session.query(Translation).get(int(translation_id))
-        data = {'translation': translation}
+        data = {'translation': translation, 'redirect_back': redirect_back}
 
         sid_voted = translation.votes.filter_by(sid=req.authname).first()
 
@@ -254,9 +254,10 @@ class L10nModule(Component):
                 return 'l10n_translate_message.html', data, None
 
             translation = Translation(locale, message, req.authname)
-            comment = TranslationComment(translation, req.args.get('comment'))
+            comment = req.args.get('comment')
             if comment:
-                translation.comments.append(comment)
+                translation.comments.append(TranslationComment(translation,
+                                                               comment))
             if message.plural:
                 for idx in range(locale.num_plurals):
                     string = req.args.get('translation-%d' % idx)
