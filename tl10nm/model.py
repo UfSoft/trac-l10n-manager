@@ -378,7 +378,7 @@ class OverridenInstrumentedList(InstrumentedList):
 
     def __contains__(self, obj):
         for rec in self:
-            if hasattr(rec, attr_to_get):
+            if hasattr(rec, self.__attr_to_get__):
                 if getattr(rec, self.__attr_to_get__) == obj:
                     return True
         return InstrumentedList.__contains__(self, obj)

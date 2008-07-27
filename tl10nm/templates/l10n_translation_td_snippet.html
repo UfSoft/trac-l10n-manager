@@ -38,7 +38,7 @@
         </td>
       </tr>
       <tr py:for="ts in translation.strings">
-        <th>${ help_link('translation_index')}
+        <th><py:if test="len(list(translation.strings))>1">${ help_link('translation_indexes')}</py:if>
           Translation<span py:if="len(list(translation.strings))>1" py:strip="">[$ts.index]</span>:</th>
         <td>${breaklines(ts.string)}</td>
       </tr>
