@@ -161,6 +161,10 @@ class MsgID(object):
             msgid_table.c.id==self.id).filter_by(
                 sid=sid).filter_by(locale_id=locale.id).first()
 
+    @property
+    def multiline(self):
+        return '\n' in self.string
+
     def split(self, split_by):
         return self.string.split(split_by)
 
