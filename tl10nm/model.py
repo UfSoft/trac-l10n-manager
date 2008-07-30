@@ -305,7 +305,7 @@ class Locale(object):
                                fuzzy=False,
                                last_translator=last_translator)
         for message in messages:
-            catalog[message.id] = message.as_babel_message(self)
+            catalog[message.id] = message.babelize(self)
         return catalog
 
     def get_pofile(self):
