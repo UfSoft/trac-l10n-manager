@@ -18,7 +18,7 @@ from tracext.sa import session
 
 from tl10nm.model import *
 
-class L10NAdminProjects(Component):
+class L10NAdminCatalogs(Component):
     implements(IAdminPanelProvider)
     env = log = config = None # make pylint happy
     hrefs_cache = {}
