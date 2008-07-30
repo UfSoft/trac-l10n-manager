@@ -1,0 +1,58 @@
+<!--!
+  l10n_admin_locale_admins
+  Created by Pedro Algarvio on 2008-05-30
+  Copyright (c) 2008 Pedro Algarvio. All rights reserved.
+-->
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="admin.html" />
+  <xi:include href="l10n_macros.html" />
+  <head>
+    <title>L10N Manager - Manage Locale Admins</title>
+    <!--! Need to get the stylesheet on the template so that trac's admin.css get's overriden  -->
+    <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
+  </head>
+  <body>
+    <h2>Manage Locale Admins</h2>
+
+    <div class="system-message" py:if="error">
+      <span>$error</span>
+    </div>
+
+    <form action="${req.href.admin('translations', 'admins', locale.id)}" method="post">
+      <fieldset>
+        <legend>Locale Admin(s)</legend>
+        <table class="listing scroll">
+          <thead>
+            <tr>
+              <th class="sel">&nbsp;</th>
+              <th>Known Users</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr py:for="sid, name, email in known_users">
+              <td><input type="checkbox" name="admins" value="$sid"
+                         checked="${sid in locale.admins and 'checked' or None}"/></td>
+              <td>$sid</td>
+            </tr>
+          </tbody>
+        </table>
+        <script type="text/javascript">
+          jQuery(document).ready( function($) {
+            $('table.scroll').tableScroller({minimumRows: 15});
+          });
+        </script>
+      </fieldset>
+      <div class="buttons">
+        <py:for each="admin in locale.admins">
+        <input type="hidden" name="current_admins" value="$admin.sid"/>
+        </py:for>
+        <input type="submit" value="Update"/>
+      </div>
+    </form>
+  </body>
+</html>

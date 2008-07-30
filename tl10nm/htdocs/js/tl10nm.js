@@ -111,7 +111,7 @@
 
             $(this).change( function() {
                 $.ajax({
-                    url: mainurl + "?project_catalogs=" + $(this).val(),
+                    url: mainurl + "?q=" + $(this).val(),
                     error: insertError,
                     success: insertHtml
                 });

@@ -58,6 +58,7 @@
         <script type="text/javascript">
           jQuery(document).ready(function($) {
             $('fieldset').HideShow(${len(projects) > 1 and 'true' or None});
+            $('a.jTip').jTipNG();
             <py:if test="not projects">
             $('fieldset legend:first a:first').click()
             </py:if>

@@ -15,7 +15,7 @@
     <title>L10N Manager - Manage Catalogs</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
-        $("#fpath").suggest();
+        $("#fpath").suggest("${req.href.translations('ajax', 'repo_paths')}");
         $('a.jTip').jTipNG();
       });
     </script>

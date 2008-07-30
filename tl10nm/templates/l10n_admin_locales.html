@@ -1,6 +1,6 @@
 <!--!
   l10n_admin_locales
-  Created by Pedro Algarvio on 2008-05-08-15
+  Created by Pedro Algarvio on 2008-05-15
   Copyright (c) 2008 Pedro Algarvio. All rights reserved.
 -->
 <!DOCTYPE html
@@ -15,8 +15,9 @@
     <title>L10N Manager - Manage Catalogs</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
-        $("#catalog").suggest();
-        $("#locale").suggest("", "locale");
+        $("#catalog").suggest("${req.href.translations('ajax', 'repo_paths')}");
+        $("#locale").suggest("${req.href.translations('ajax', 'locales')}");
+        $('a.jTip').jTipNG();
       });
     </script>
     <!--! Need to get the stylesheet on the template so that trac's admin.css get's overriden  -->
@@ -168,7 +169,7 @@
     <script type="text/javascript">
       jQuery(document).ready(function($) {
         $("#project_id").projectCatalogOptions(
-          "${req.href.admin('translations', 'locales')}", "#catalog_templates");
+          "${req.href.translations('ajax', 'catalogs')}", "#catalog_templates");
         $('fieldset').HideShow();
         <py:if test="[p.catalogs for p in projects if p.catalogs]==[]">
         $('fieldset :enabled').enable(false);
