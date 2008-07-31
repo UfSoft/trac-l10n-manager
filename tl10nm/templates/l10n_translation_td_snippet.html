@@ -15,7 +15,7 @@
     </span>
     <span class="floated" py:if="translation.sid==req.authname or
                                  req.authname in translation.locale.admins or
-                                 req.perm.require('L10N_ADMIN', 'TRAC_ADMIN')">
+                                 'L10N_ADMIN' in req.perms">
       <a class="hijax" href="${req.href.translation('delete', translation.id, redirect_back=redirect_back or req.path_info)}">
         Delete Translation</a>
       <script TYPE="text/javascript">

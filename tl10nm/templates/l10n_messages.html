@@ -19,7 +19,11 @@
             locale=locale.locale,
             display_name=locale.locale.display_name,
             english_name=locale.locale.english_name)
-           } <span class="numresults">(${messages.displayed_items()})</span>
+           }
+           <span class="numresults">(${messages.displayed_items()})</span>
+           <a class="contribute" href="${req.href.translate(locale.catalog.id, locale.locale)}">
+            Help Translate
+           </a>
         </h2>
         <xi:include py:with="paginator = messages" href="page_index.html" />
       </py:if>

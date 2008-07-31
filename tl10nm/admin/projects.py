@@ -21,7 +21,7 @@ class L10NAdminProjects(Component):
             yield ('translations', 'L10N Manager', 'projects', _('Projects'))
 
     def render_admin_panel(self, req, cat, page, path_info):
-        req.perm.require('L10N_MODERATE', 'L10N_ADMIN', 'TRAC_ADMIN')
+        req.perm.require('L10N_ADMIN')
         add_script(req, 'tl10nm/js/tl10nm.js')
         add_script(req, 'tl10nm/js/jquery.jTipNG.js')
         # add_stylesheet(req, 'tl10nm/css/l10n_style.css')

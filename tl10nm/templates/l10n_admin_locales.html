@@ -144,16 +144,16 @@
             </td>
             <td>
               ${ ', '.join([admin.sid for admin in locale.admins])}
-              (<a href="${req.href.admin('translations', 'admins', locale.id)}">edit</a>)
+              (<a href="${req.href.admin('translations', 'locales', 'admins', locale.id)}">edit</a>)
             </td>
             <td class="narrow">${ render_stats_graph(locale) }</td>
             <td class="narrow">$locale.translated</td>
             <td class="narrow">$locale.fuzzy</td>
             <td class="narrow">$locale.untranslated</td>
             <td class="narrow">
-              <a href="${req.href.admin('translations', 'downloads', locale.id, project.po_fname)}"
+              <a href="${req.href.admin('translations', 'locales', 'downloads', locale.id, project.po_fname)}"
                  title="Download localized catalog">PO</a>
-              <a href="${req.href.admin('translations', 'downloads', locale.id, project.mo_fname)}"
+              <a href="${req.href.admin('translations', 'locales', 'downloads', locale.id, project.mo_fname)}"
                  title="Download compiled catalog">MO</a>
             </td>
           </tr>

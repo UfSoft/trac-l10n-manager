@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: sw=4 ts=4 fenc=utf-8 et
 
+import re
 from cStringIO import StringIO
 
 from trac.core import Component, implements, TracError
@@ -26,19 +27,14 @@ class L10NAdminLocales(Component):
 
     # IAdminPageProvider methods
     def get_admin_panels(self, req):
-        if 'L10N_ADMIN' in req.perm:
-            yield ('translations', 'L10N Manager', 'locales', _('Locales'))
-            yield ('translations', 'L10N Manager', 'downloads', None)
-            yield ('translations', 'L10N Manager', 'admins', None)
-        elif 'L10N_MODERATE' in req.perm:
+        if 'L10N_MODERATE' in req.perm:
             # Is user a manager of any locale
-            if session(self.env).query(LocaleAdmin).get_by(sid=req.authname):
+            Session = session(self.env)
+            if Session.query(LocaleAdmin).filter_by(sid=req.authname).first():
                 yield ('translations', 'L10N Manager', 'locales', _('Locales'))
-                yield ('translations', None, 'downloads', None)
-                yield ('translations', None, 'admins', None)
 
     def render_admin_panel(self, req, cat, page, path_info):
-        req.perm.require('L10N_ADMIN', 'L10N_MODERATE', 'TRAC_ADMIN')
+        req.perm.require('L10N_MODERATE')
 
         add_script(req, 'tl10nm/js/autocomplete.js')
         add_script(req, 'tl10nm/js/tl10nm.js')
@@ -46,16 +42,19 @@ class L10NAdminLocales(Component):
         add_script(req, 'tl10nm/js/jquery.tablescroller.js')
         # add_stylesheet(req, 'tl10nm/css/l10n_style.css')
         # Needs to be on the template so that trac's admin.css get's overridden
+        match = re.match(r'^/admin/translations/locales/'
+                         r'(admins|downloads)/([\d]+)(?:/(.*))?', req.path_info)
+        if match:
+            action, locale_id, fname = match.groups()
+            if action == 'admins':
+                return self.handle_edit_locale_admins(req, locale_id)
+            elif action == 'downloads':
+                return self.handle_downloads(req, locale_id, fname)
+        return self.handle_locales(req, path_info)
 
-        if page == 'admins':
-            return self.handle_edit_locale_admins(req, path_info)
-        elif page == 'locales':
-            return self.handle_locales(req)
-        elif page == 'downloads':
-            return self.handle_downloads(req, path_info)
-
-    def handle_locales(self, req):
+    def handle_locales(self, req, path_info):
         data = {}
+
         if req.method == 'POST':
             if req.args.get('delete_selected'):
                 data.update(self.delete_locale(req))
@@ -111,12 +110,21 @@ class L10NAdminLocales(Component):
         Session.commit()
 
         perm = PermissionSystem(self.env)
+        sids_without_necessary_perms = []
         for admin in locale.admins:
             if not 'L10N_MODERATE' in perm.get_user_permissions(admin.sid):
-                add_error(tag(_("'%s' does not have required permissions to "
-                                "administrate. ") % admin.sid,
-                              tag.a(_('update permissions'),
-                                    href=req.href.admin('general', 'perm'))))
+                sids_without_necessary_perms.append(admin.sid)
+
+        if sids_without_necessary_perms:
+            msg = ngettext(
+                "%s does not have the required permissions to administrate" % \
+                ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
+                "%s don't have the required permissions to administrate" % \
+                ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
+                 len(sids_without_necessary_perms))
+            add_error(tag(msg, _("Don't forget to"),
+                          tag.a(_('update permissions'),
+                                href=req.href.admin('general', 'perm'))))
 
         add_notice(req, _("Locale added."))
 
@@ -203,9 +211,14 @@ class L10NAdminLocales(Component):
                                  len(selected)))
         return {}
 
-    def handle_downloads(self, req, path_info):
-        locale_id, fname = path_info.split('/')
+    def handle_downloads(self, req, locale_id, fname):
         locale = session(self.env).query(Locale).get(int(locale_id))
+        if not locale:
+            raise TracError(_("Unknown locale id: %s") % locale_id)
+
+        self.log.debug("User '%s' is requesting '%s' download for locale '%s'",
+                       req.authname, fname, locale.locale)
+
         if fname.endswith('.po'):
             tmpfile = locale.get_pofile()
             req.send_file(tmpfile[1], mimetype='text/x-gettext')
@@ -215,19 +228,31 @@ class L10NAdminLocales(Component):
         else:
             raise TracError(_('Unknown download'))
 
-    def handle_edit_locale_admins(self, req, path_info):
+    def handle_edit_locale_admins(self, req, locale_id):
+        if not locale_id:
+            req.redirect(req.href.admin('translations', 'locales'))
+
         Session = session(self.env)
-        locale = Session.query(Locale).get(int(path_info.strip('/')))
+        locale = Session.query(Locale).get(int(locale_id))
         known_users = self.env.get_known_users()
         errors = []
         perm = PermissionSystem(self.env)
+        sids_without_necessary_perms = []
         for admin in locale.admins:
             if not 'L10N_MODERATE' in perm.get_user_permissions(admin.sid):
-                errors.append(
-                    tag(_("'%s' does not have required permissions to "
-                          "administrate. ") % admin.sid,
-                        tag.a(_('update permissions'),
-                              href=req.href.admin('general', 'perm'))))
+                sids_without_necessary_perms.append(admin.sid)
+
+        if sids_without_necessary_perms:
+            msg = ngettext(
+                "%s does not have the required permissions to administrate." % \
+                ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
+                "%s don't have the required permissions to administrate." % \
+                ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
+                 len(sids_without_necessary_perms))
+            errors.append(
+                tag(msg, _(" Don't forget to "),
+                    tag.a(_('update permissions'),
+                          href=req.href.admin('general', 'perm')), '.'))
 
         if req.method == 'POST' and len(req.args.getlist('admins')) >= 1:
             current_admins = req.args.getlist('current_admins')

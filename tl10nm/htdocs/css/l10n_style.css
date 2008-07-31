@@ -220,3 +220,6 @@ ul.floated li a{
 div.info {
   background-color: #d0daff;
 }
+
+h2 a.contribute { color: #bb0000; padding-left: 25px; }
+h2 .numresults { padding-left: 25px; }

@@ -295,7 +295,7 @@ class Locale(object):
         HEADER = DEFAULT_HEADER.splitlines()[:-2]
         if contributors:
             HEADER.extend(['#', '# Contributors:'] +
-                          ['# %s, %s' % sid for sid in contributors])
+                          ['#  %s, %s' % sid_year for sid_year in contributors])
             last_translator = contributors[-1][0]
         HEADER.append('#')
         catalog = BabelCatalog(self.locale, domain, header_comment='\n'.join(HEADER),

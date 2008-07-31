@@ -197,6 +197,7 @@ class L10nModule(Component):
             req.redirect(redirect_back)
 
     def process_translate_request(self, req):
+        req.perm.require('L10N_ADD')
         match = re.match(r'^/translate'
                          r'(?:/([0-9]+)?)?'         # catalog id
                          r'(?:/([A-Za-z\-_]+)?)?'   # locale name
@@ -226,12 +227,19 @@ class L10nModule(Component):
                m.translations.filter(
                     translation_table.c.sid!=req.authname).filter(
                         translation_table.c.locale_id==locale.id).all()]
+        ids = [m.id for m in catalog.messages.all() if not
+               m.translations.filter_by(locale_id=locale.id).all()]
         data['translatable'] = len(ids)
+        data['max_translatable'] = locale.catalog.messages.count()
 
         if not msgid_id:
+            random_id = random.choice(ids)
+            self.log.debug("Randomly chose id %s from %s", random_id, ids)
             # Provide a random translation to the user
-            data['message'] = message = Session.query(MsgID).get(
-                                                            random.choice(ids))
+            data['message'] = message = Session.query(MsgID).get(random_id)
+            # Force a browser cache ignore to get a new id in case user hits
+            # reload.
+            req.send_header('Expires', 'Fri, 01 Jan 1999 00:00:00 GMT')
         else:
             data['message'] = message = Session.query(MsgID).get(int(msgid_id))
 

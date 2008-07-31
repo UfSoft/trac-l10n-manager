@@ -33,7 +33,7 @@ class L10NAjaxRequests(Component):
         return False
 
     def process_request(self, req):
-        req.perm.require('L10N_ADMIN', 'L10N_MODERATE', 'TRAC_ADMIN')
+        req.perm.require('L10N_ADMIN') # 'L10N_MODERATE'
 
         match = re.match(r'^/translations/ajax(?:/([a-z_]+)?)?',
                          req.path_info)

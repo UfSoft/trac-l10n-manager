@@ -12,10 +12,11 @@
   <body>
     <xi:include href="tl10nm_js_messages.html"/>
     <div id="content" class="narrow_content">
-      <h2>${ ngettext('Translated %(translated)d of %(translatable)d message for the %(locale_display_name)s locale',
-                      'Translated %(translated)d of %(translatable)d messages for the %(locale_display_name)s locale',
+      <h2>${ ngettext('Translated %(translated)d of %(max_translatable)d message (%(translatable)d still untranslated) for the %(locale_display_name)s locale.',
+                      'Translated %(translated)d of %(max_translatable)d messages (%(translatable)d still untranslated) for the %(locale_display_name)s locale.',
                       translatable) % dict(translated=translated,
                                            translatable=translatable,
+                                           max_translatable=max_translatable,
                                            locale_display_name=locale.locale.display_name) }</h2>
       <form action="${req.href.translate(catalog_id, locale.locale, message.id)}"
             method="post">
