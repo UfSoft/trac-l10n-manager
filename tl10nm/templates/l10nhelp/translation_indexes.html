@@ -1,14 +1,17 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:i18n="http://genshi.edgewall.org/i18n" py:strip="">
   <div>
     <h2>Translation Index <em>n<sup>th</sup></em></h2>
-    <p>Plural translation for <em>n<sup>th</sup></em> items.</p>
-    <p>Example:</p>
-    <p><tt><b>Translation[&nbsp;0&nbsp;]</b>: <em>One coin</em></tt></p>
-    <p><tt><b>Translation[&nbsp;1&nbsp;]</b>: <em>Two coins</em></tt></p>
-    <p><tt><b>Translation[&nbsp;2&nbsp;]</b>: <em>Three coins</em></tt></p>
-    <p><tt><b>Translation[<em>n-1</em>]</b>: <em><b>n</b> coins</em></tt></p>
+    <p i18n:msg="">Plural translation for <em>n<sup>th</sup></em> items.</p>
+    <p i18n:msg="">Example:</p>
+    <p><tt i18n:msg=""><b>Translation[ 0 ]</b>: <em>One coin</em></tt></p>
+    <p><tt i18n:msg=""><b>Translation[ 1 ]</b>: <em>Two coins</em></tt></p>
+    <p><tt i18n:msg=""><b>Translation[ 2 ]</b>: <em>Three coins</em></tt></p>
+    <p><tt i18n:msg=""><b>Translation[<em>n-1</em>]</b>: <em><b>n</b> coins</em></tt></p>
 
-    <p><b>Note that the <em>n<sup>th</sup></em> value is the number of items minus one.</b></p>
+    <p i18n:msg="">
+      <b>Note that the <em>n<sup>th</sup></em> value is the number of items minus one.</b>
+    </p>
   </div>
 </div>

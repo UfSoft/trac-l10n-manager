@@ -35,6 +35,7 @@ setup(name=tl10nm.__package__,
             'templates/*.html',
             'htdocs/css/*.css',
             'htdocs/img/*.png',
+            'htdocs/img/*.gif',
             'htdocs/js/*.js',
         ]
       },

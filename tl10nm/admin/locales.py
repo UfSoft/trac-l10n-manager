@@ -117,14 +117,15 @@ class L10NAdminLocales(Component):
 
         if sids_without_necessary_perms:
             msg = ngettext(
-                "%s does not have the required permissions to administrate" % \
+                "%s does not have the required permissions to administrate." % \
                 ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
-                "%s don't have the required permissions to administrate" % \
+                "%s don't have the required permissions to administrate." % \
                 ', '.join(["'%s'" % s for s in sids_without_necessary_perms]),
                  len(sids_without_necessary_perms))
-            add_error(tag(msg, _("Don't forget to"),
+            add_error(tag(msg, _(" Don't forget to "),
                           tag.a(_('update permissions'),
-                                href=req.href.admin('general', 'perm'))))
+                                href=req.href.admin('general', 'perm')),
+                          '.'))
 
         add_notice(req, _("Locale added."))
 

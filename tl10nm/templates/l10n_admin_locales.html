@@ -8,11 +8,12 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:i18n="http://genshi.edgewall.org/i18n">
   <xi:include href="admin.html" />
   <xi:include href="l10n_macros.html" />
   <head>
-    <title>L10N Manager - Manage Catalogs</title>
+    <title>L10N Manager - Manage Locales</title>
     <script type="text/javascript">
       jQuery(document).ready(function($) {
         $("#catalog").suggest("${req.href.translations('ajax', 'repo_paths')}");
@@ -35,7 +36,8 @@
       <fieldset>
         <legend class="new_locale_legend">Add new locale</legend>
         <div>
-          <div class="system-message" py:if="[p.catalogs for p in projects if p.catalogs]==[]">
+          <div class="system-message" i18n:msg=""
+               py:if="[p.catalogs for p in projects if p.catalogs]==[]">
             You must first define a
             <a href="${req.href.admin('translations', 'catalogs')}">base catalog</a>.
           </div>
@@ -90,9 +92,10 @@
                          value="${defined('catalog') and catalog or '/'}"/><br/>
                   <input type="checkbox" value="1" name="include_fuzzy">
                     Inlcude fuzzy translations</input>
-                  <p class="help">If you already have a localized catalog for this
-                    locale in the <a href="${req.href.browser()}">repository</a>,
-                    enter it's path here to import the available translations.</p>
+                  <p class="help" i18n:msg="">If you already have a localized
+                    catalog for this locale in the
+                    <a href="${req.href.browser()}">repository</a>, enter it's
+                    path here to import the available translations.</p>
 
                 </fieldset>
               </td>
