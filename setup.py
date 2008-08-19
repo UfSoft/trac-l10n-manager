@@ -28,6 +28,7 @@ setup(name=tl10nm.__package__,
       license=tl10nm.__license__,
       platforms="OS Independent - Anywhere Python and Trac >=0.11 is known to run.",
       install_requires = ['Trac>0.11', 'Genshi>=0.5', 'Babel', 'TracSQLAlchemyBridge'],
+      setup_requires = ['TracSQLAlchemyBridge'],
       keywords = "trac plugin l10n",
       packages=find_packages(),
       package_data={
