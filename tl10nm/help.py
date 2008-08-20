@@ -18,6 +18,7 @@ from genshi.builder import tag
 from genshi.template import TemplateNotFound
 from pkg_resources import resource_filename
 
+domain = 'tl10nm_messages'
 
 class WeakReferenceRenderer(object):
     def __init__(self, env, template, data):
@@ -56,8 +57,8 @@ class L10NManagerHelpModule(Component):
 
         last_modified = self.template_available(template)
         # Include cache headers to ease on server requests since this data does
-        # not change
-        req.check_modified(last_modified)
+        # not change besides the locale to render it
+        req.check_modified(last_modified, extra=req.locale)
 
         if not last_modified:
             if ajax_request:
@@ -69,10 +70,10 @@ class L10NManagerHelpModule(Component):
             data.update( {'template': template} )
             return 'l10n_help_base.html', data, None
 
-        output = self.rendered_templates.get(template)
+        output = self.rendered_templates.get((req.locale, template))
         if output is None:
             output = WeakReferenceRenderer(self.env, template, data)
-            self.rendered_templates[template] = output
+            self.rendered_templates[(req.locale, template)] = output
         req.write(output.render(req))
         raise RequestDone
 
