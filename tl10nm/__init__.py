@@ -16,10 +16,13 @@ L10N Manager Trac Plugin
  * Allow admins to download the translations in PO or MO gettext format
 """
 
-# -------------------------- import package modules ----------------------------
+# ---------------------- import package modules --------------------------------
 import admin, resources, web_ui, perm, help, model, forms
 
-# -------------------- Database Init/Upgrade Code ------------------------------
+# ---------------------- Trac I18N Setup Imports -------------------------------
+from trac.util.translation import add_domain
+import pkg_resources
+# --------------------- Database Init/Upgrade Code -----------------------------
 from trac.core import Component, implements
 from trac.env import IEnvironmentSetupParticipant
 from tracext.sa import engine
@@ -34,6 +37,8 @@ class TracL10nManagerSetup(Component):
         self.upgrade_environment(self.env.get_db_cnx())
 
     def environment_needs_upgrade(self, db):
+        add_domain(self.env.path, 'tl10nm_messages',
+                   pkg_resources.resource_filename(__name__, 'i18n'))
         cursor = db.cursor()
         cursor.execute("SELECT value FROM system WHERE name=%s",
                        (model.name,))

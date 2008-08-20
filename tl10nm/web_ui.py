@@ -19,6 +19,8 @@ from tracext.sa import session
 
 from tl10nm.model import *
 
+domain = 'tl10nm_messages'
+
 class L10nModule(Component):
     implements(INavigationContributor, IRequestHandler)
     env = log = config = None # make pylint happy

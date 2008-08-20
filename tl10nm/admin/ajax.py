@@ -17,6 +17,8 @@ from tracext.sa import session
 from tl10nm.model import *
 from tl10nm.admin.utils import AVAILABLE_LOCALES
 
+domain = 'tl10nm_messages'
+
 class L10NAjaxRequests(Component):
     implements(IRequestHandler)
     env = log = config = None # make pylint happy
@@ -41,7 +43,7 @@ class L10NAjaxRequests(Component):
             raise RequestDone
 
         request = 'handle_%s' % match.group(1)
-        self.log.debug('AJAX Handler: %s', request)
+        self.log.debug(_('AJAX Handler: %s'), request)
         ajax_handler = getattr(self, request)
         if ajax_handler and callable(ajax_handler):
             return ajax_handler(req)
