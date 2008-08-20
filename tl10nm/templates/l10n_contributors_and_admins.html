@@ -1,18 +1,26 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    i18n:domain="tl10nm_messages" py:strip="">
   <div id="admins_and_contributors" py:if="locale.admins or locale.contributors">
-    <h2 py:if="locale.admins">
-      ${ ngettext('Admin', 'Admins', len(locale.admins))}
-    </h2>
+  <py:if test="locale.admins">
+  <i18n:choose numeral="len(locale.admins)">
+    <h2 i18n:singular="">Admin</h2>
+    <h2 i18n:plural="">Admins</h2>
+  </i18n:choose>
     <ul>
       <li py:for="admin in locale.admins">$admin.sid</li>
     </ul>
+  </py:if>
 
-    <h2 py:if="locale.contributors">
-      ${ ngettext('Contributor', 'Contributors', len(locale.contributors))}
-    </h2>
+    <py:if test="locale.contributors">
+    <i18n:choose numeral="len(locale.contributors)">
+    <h2 i18n:singular="">Contributor</h2>
+    <h2 i18n:plural="">Contributors</h2>
+    </i18n:choose>
     <ul py:if="locale.contributors">
       <li py:for="contributor in locale.contributors">$contributor</li>
     </ul>
+    </py:if>
   </div>
 </div>

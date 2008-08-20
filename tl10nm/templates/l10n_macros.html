@@ -33,7 +33,10 @@
           <td>${breaklines(message.plural)}</td>
         </tr>
         <tr py:with="locations=message.locations">
-          <th>${help_link('message_location')} ${ngettext("Location:", "Locations:", len(locations))}</th>
+        <i18n:choose numeral="len(locations)" params="help_link">
+          <th i18n:singular="">${help_link('message_location')} Location:</th>
+          <th i18n:plural="">${help_link('message_location')} Locations:</th>
+        </i18n:choose>
           <td><py:for each="location in locations">
               <a href="$location.href">$location.fname:$location.lineno</a><br/>
             </py:for></td>
@@ -54,7 +57,10 @@
   <py:def function="render_translation_fields(catalog, locale, message)">
     <py:with vars="translations=message.translations.filter_by(locale_id=locale.id).all()">
     <tr py:if="translations">
-      <th>${ ngettext('Current Translation:', 'Current Translations:', len(translations)) }</th>
+    <i18n:choose numeral="len(translations)">
+      <th i18n:singular="">Current Translation:</th>
+      <th i18n:plural="">Current Translations:</th>
+    </i18n:choose>
       <td>
       <py:for each="translation in translations">
         <xi:include href="l10n_translation_td_snippet.html"/>

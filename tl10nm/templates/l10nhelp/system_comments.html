@@ -1,16 +1,15 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
-    xmlns:i18n="http://genshi.edgewall.org/i18n" py:strip="">
-  <span py:strip="">
-    <h2>System Comments</h2>
-    <p i18n:msg="">Comments which are <em>extracted</em> from the
-      <tt>source-code</tt> by the extraction tools.</p>
-    <p i18n:msg="">Usualy this are used to let the translator know something.
-      Consider the following example:</p>
-    <pre>#: No need to translate the application name
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    i18n:domain="tl10nm_messages" py:strip="">
+  <h2>System Comments</h2>
+  <p i18n:msg="">Comments which are <em>extracted</em> from the
+    <tt>source-code</tt> by the extraction tools.</p>
+  <p i18n:msg="">Usually these are used to let the translator know something.
+    Consider the following example:</p>
+  <pre i18n:msg="">#: No need to translate the application name
 _('My Application')</pre>
-    <p i18n:msg="">This tells the translator that there's no need to translate
-      that message, it's the application name <em>(this is just an example)</em>.
-    </p>
-  </span>
+  <p i18n:msg="">This tells the translator that there's no need to translate
+    that message, it's the application name <em>(this is just an example)</em>.
+  </p>
 </div>

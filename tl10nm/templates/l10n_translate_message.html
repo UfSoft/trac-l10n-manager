@@ -1,9 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:py="http://genshi.edgewall.org/"
-    xmlns:xi="http://www.w3.org/2001/XInclude"
-    xmlns:i18n="http://genshi.edgewall.org/i18n">
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      i18n:domain="tl10nm_messages">
   <xi:include href="layout.html" />
   <xi:include href="l10n_macros.html" />
   <head>
@@ -12,14 +13,16 @@
   <body>
     <xi:include href="tl10nm_js_messages.html"/>
     <div id="content" class="narrow_content">
-      <h2>${ ngettext('Translated %(translated)d of %(max_translatable)d message (%(translatable)d still untranslated) for the %(locale_display_name)s locale.',
-                      'Translated %(translated)d of %(max_translatable)d messages (%(translatable)d still untranslated) for the %(locale_display_name)s locale.',
-                      translatable) % dict(translated=translated,
-                                           translatable=translatable,
-                                           max_translatable=max_translatable,
-                                           locale_display_name=locale.locale.display_name) }</h2>
-      <form action="${req.href.translate(catalog_id, locale.locale, message.id)}"
-            method="post">
+    <i18n:choose numeral="translatable" params="translated, max_translatable, translatable, locale">
+      <h2 i18n:singular="">Translated ${translated} of ${max_translatable}
+        message (${translatable} still untranslated) for the
+        ${locale.locale} locale.</h2>
+      <h2 i18n:plural="">Translated ${translated} of ${max_translatable}
+        messages (${translatable} still untranslated) for the
+        ${locale.locale} locale.</h2>
+    </i18n:choose>
+
+      <form action="${req.href.translate(catalog_id, locale.locale, message.id)}" method="post">
         ${ render_message(message.catalog, locale, message, False) }
         <fieldset class="translation">
           <legend>Translate Message</legend>
@@ -33,7 +36,7 @@
             </tr>
             <tr>
               <td colspan="2">
-                <div class="system-message info">
+                <div class="system-message info" i18n:msg="">
                   <b>Attention: </b> All white-space used on translations will
                   be kept, that means leading and trailing white-space.
                 </div>

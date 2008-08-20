@@ -1,5 +1,6 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:py="http://genshi.edgewall.org/" py:strip="">
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:i18n="http://genshi.edgewall.org/i18n" py:strip="">
 
   <div id="vote-contents-$translation.id"
        py:with="voter=translation.votes.filter_by(sid=req.authname).first();

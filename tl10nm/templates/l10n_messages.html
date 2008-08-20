@@ -3,7 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude"
-    xmlns:i18n="http://genshi.edgewall.org/i18n">
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    i18n:domain="tl10nm_messages">
   <xi:include href="layout.html"/>
   <xi:include href="l10n_macros.html"/>
   <head>
@@ -14,24 +15,24 @@
     <div id="content" class="translations narrow_content">
       <xi:include href="l10n_contributors_and_admins.html"/>
       <py:if test="messages">
-        <h2>
-          ${_('Messages for %(locale)s - %(display_name)s - %(english_name)s') % dict(
-            locale=locale.locale,
-            display_name=locale.locale.display_name,
-            english_name=locale.locale.english_name)
-           }
+        <h2 i18n:msg="locale, display_name, english_name, displayed_items">
+          Messages for $locale.locale &mdash;
+          <span xml:lang="$locale.locale">$locale.locale.display_name</span>
+          &mdash; $locale.locale.english_name
            <span class="numresults">(${messages.displayed_items()})</span>
-           <a class="contribute" href="${req.href.translate(locale.catalog.id, locale.locale)}">
+           <a class="contribute"
+              href="${req.href.translate(locale.catalog.id, locale.locale)}">
             Help Translate
            </a>
         </h2>
-        <xi:include py:with="paginator = messages" href="page_index.html" />
+
+        <xi:include py:with="paginator = messages" href="page_index.html"/>
       </py:if>
 
       <py:for each="msg in messages">
         ${ render_message(locale.catalog, locale, msg, True) }
       </py:for>
-      <xi:include py:with="paginator = messages" href="page_index.html" />
+      <xi:include py:with="paginator = messages" href="page_index.html"/>
     </div>
     <script type="text/javascript">
       jQuery(document).ready( function($) {
