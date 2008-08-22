@@ -5,8 +5,8 @@
   <div id="admins_and_contributors" py:if="locale.admins or locale.contributors">
   <py:if test="locale.admins">
   <i18n:choose numeral="len(locale.admins)">
-    <h2 i18n:singular="">Admin</h2>
-    <h2 i18n:plural="">Admins</h2>
+    <h2 i18n:singular="">Administrator</h2>
+    <h2 i18n:plural="">Administrators</h2>
   </i18n:choose>
     <ul>
       <li py:for="admin in locale.admins">$admin.sid</li>

@@ -46,7 +46,15 @@ class L10NAdminCatalogs(Component):
 
         repos = self.env.get_repository(req.authname)
         data['youngest_rev'] = repos.short_rev(repos.youngest_rev)
-        data['projects'] = Session.query(Project).all()
+        projects = Session.query(Project).all()
+        for project in projects:
+            for catalog in project.catalogs:
+                node = repos.get_node(catalog.fpath, repos.youngest_rev)
+                if ':' in node.rev:
+                    catalog.latest_revision = int(node.rev.split(':')[0])
+                else:
+                    catalog.latest_revision = int(node.rev)
+        data['projects'] = projects
 
         return 'l10n_admin_catalogs.html', data
 
