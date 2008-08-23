@@ -103,10 +103,10 @@
             <td><a href="${req.href.browser(template.fpath)}">$template.fpath</a></td>
             <td>
               <a href="${req.href.browser(template.fpath, rev=template.revision)}"
-                 title="File revision on database">
+                 title="Catalog revision on database">
                 $template.revision</a>
                 (<a href="${req.href.browser(template.fpath, rev=template.latest_revision)}"
-                 title="File youngest revision on repository">$template.latest_revision</a> /
+                 title="Catalog youngest revision on repository">$template.latest_revision</a> /
                 <a href="${req.href.browser(template.fpath)}"
                    title="Repository youngest revision">${youngest_rev}</a>)
             </td>

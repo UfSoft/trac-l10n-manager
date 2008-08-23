@@ -22,7 +22,7 @@
             <th>Translated</th>
             <th>Fuzzy</th>
             <th>Untranslated</th>
-            <th class="narrow" py:if="'L10N_ADD' in req.perm">Contribute</th>
+            <th class="narrow" py:if="l10nman.can_translate(req)">Contribute</th>
           </tr>
         </thead>
         <tbody>
@@ -38,7 +38,7 @@
             <td class="narrow">$locale.translated</td>
             <td class="narrow">$locale.fuzzy</td>
             <td class="narrow">$locale.untranslated</td>
-            <td class="narrow" py:if="'L10N_ADD' in req.perm">
+            <td class="narrow" py:if="l10nman.can_translate(req)">
               <a href="${req.href.translate(catalog.id, locale.locale)}">Translate</a>
             </td>
           </tr>

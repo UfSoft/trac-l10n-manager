@@ -26,14 +26,14 @@
     <link type="text/css" href="${req.href.chrome('tl10nm/css/l10n_style.css')}" rel="stylesheet"/>
   </head>
   <body>
-    <h2 py:if="'L10N_ADMIN' in req.perm">Manage Locales</h2>
+    <h2 py:if="l10nman.is_admin(req)">Manage Locales</h2>
 
     <div class="system-message" py:if="defined('error')">
       <span class="system-message">$error</span>
     </div>
 
     <form action="" name="new_locale" id="new_locale" method="post"
-          py:if="'L10N_ADMIN' in req.perm">
+          py:if="l10nman.is_admin(req)">
       <fieldset>
         <legend class="new_locale_legend">Add new locale</legend>
         <div>
@@ -141,7 +141,7 @@
         </thead>
         <tbody>
           <tr py:for="locale in catalog.locales"
-              py:if="req.authname in locale.admins or 'L10N_ADMIN' in req.perm">
+              py:if="l10nman.is_manager(req, locale) or l10nman.is_admin(req)">
             <td><input type="checkbox" value="$locale.id" name="sel"/></td>
             <td>
               <a href="${req.href.translations(locale.catalog.id, locale.locale)}">$locale.locale</a>

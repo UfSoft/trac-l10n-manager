@@ -17,6 +17,7 @@ from trac.web.main import RequestDone
 
 from tracext.sa import session
 
+from tl10nm.api import L10NManager
 from tl10nm.model import *
 
 domain = 'tl10nm_messages'
@@ -24,6 +25,10 @@ domain = 'tl10nm_messages'
 class L10nModule(Component):
     implements(INavigationContributor, IRequestHandler)
     env = log = config = None # make pylint happy
+
+    def __init__(self):
+        Component.__init__(self)
+        self.manager = L10NManager(self.env)
 
     # IPermissionRequestor
     def get_permission_actions(self):
@@ -223,7 +228,8 @@ class L10nModule(Component):
         data = {'catalog_id': catalog_id, 'locale': locale}
 
 
-        data['translated'] = locale.translations.filter_by(sid=req.authname).count()
+        data['translated'] = locale.translations.filter_by(
+                                                    sid=req.authname).count()
         catalog = Session.query(Catalog).get(catalog_id)
         ids = [m.id for m in catalog.messages.all() if not
                m.translations.filter(
@@ -256,11 +262,15 @@ class L10nModule(Component):
             else:
                 babel_message.string = req.args.get('translation')
 
+            # Babel Checks
             errors = babel_message.check()
+            # Aditional L10NManger extension point checkers
+            errors.extend(self.manager.check_translation(babel_message))
 
             if errors:
                 req.args['form_fill'] = True # Fill in the form for us
-                data['translation_errors'] = tag.ul(*[tag.li(e) for e in errors])
+                data['translation_errors'] = tag.ul(*[tag.li(e) for e
+                                                      in errors])
                 return 'l10n_translate_message.html', data, None
 
             translation = Translation(locale, message, req.authname)

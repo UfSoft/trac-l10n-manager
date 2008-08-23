@@ -19,7 +19,7 @@
   <py:def function="render_message(catalog, locale, message, show_link=True)">
     <fieldset class="message">
       <py:if test="not message.is_translator(locale, req.authname)">
-      <span class="floated" py:if="('L10N_ADD' in req.perm) and show_link">
+      <span class="floated" py:if="l10nman.can_translate(req) and show_link">
         <a href="${ req.href.translate(catalog.id, locale.locale, message.id) }">Translate</a>
       </span>
       </py:if>
@@ -74,7 +74,7 @@
      <!--! Skip these links when TABbing by setting tabindex to -1. Not supported by all browsers  -->
     <a href="${req.href.l10nhelp(help_about)}" tabindex="-1"
        class="jTip $aditional_classes" title="Click for help"
-       py:if="'L10N_ADD' in req.perm">
+       py:if="l10nman.can_translate(req)">
       <img src="${req.href.chrome('tl10nm/img/info.png')}"/>
     </a>
   </py:def>

@@ -9,7 +9,7 @@
              positive_voters_count=positive_voters.count();
              negative_voters_count=negative_voters.count()">
     <table class="translation_votes">
-      <tr py:with="voted=voter and voter.vote==1; strip_link='L10N_ADD' not in req.perm or voted">
+      <tr py:with="voted=voter and voter.vote==1; strip_link=not l10nman.can_translate(req) or voted">
         <th>
           <a href="${req.href.translation('vote_up', translation.id,
                                           redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
@@ -37,7 +37,7 @@
           <span class="error" py:if="error">$error</span>
         </td>
       </tr>
-      <tr py:with="voted=voter and voter.vote==-1; strip_link='L10N_ADD' not in req.perm or voted">
+      <tr py:with="voted=voter and voter.vote==-1; strip_link=not l10nman.can_translate(req) or voted">
         <th>
           <a href="${req.href.translation('vote_down', translation.id,
                                           redirect_back=req.path_info + '#vote-contents-%d' % translation.id)}"
